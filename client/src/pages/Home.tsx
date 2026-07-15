@@ -702,7 +702,9 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-3 text-white/60 text-sm">
                   <MapPin className="w-4 h-4 shrink-0" />
-                  <span>1 عمارات مجمع الفردوس - بجوار نادي السكة - أمام موقف السوبر جيت</span>
+                  <span>مقر الأكاديمية : فيلا 139 - التجمع الأول - أمام أسواق عبد العزيز - متفرع من التسعين الجنوبي.
+
+مكان المعرض الدائم: 1 عمارات مجمع الفردوس - بجوار نادي السكة - أمام موقف السوبر جيت.</span>
                 </div>
               </div>
             </div>
