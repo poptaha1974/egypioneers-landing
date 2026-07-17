@@ -90,6 +90,9 @@ export default function Home() {
     name: "",
     role: "",
     challenge: "",
+    stage: "",
+    readiness: "",
+    preference: "",
   });
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -110,6 +113,9 @@ export default function Home() {
           name: formData.name,
           role: formData.role,
           challenge: formData.challenge,
+          stage: formData.stage,
+          readiness: formData.readiness,
+          preference: formData.preference,
         }),
       });
 
@@ -120,7 +126,8 @@ export default function Home() {
           (window as any).fbq("track", "Lead", {
             content_name: "EgyPioneers Qualification Form",
             role: formData.role,
-            challenge: formData.challenge,
+            stage: formData.stage,
+            readiness: formData.readiness,
           });
         }
       } else {
@@ -237,7 +244,7 @@ export default function Home() {
                 خلّينا نشوف أنسب خطوة ليك
               </h2>
               <p className="text-white/50">
-                3 أسئلة بس — وهنرد عليك بخطة عملية مخصصة ليك
+                كام سؤال سريع — وهنرد عليك بخطة عملية مخصصة ليك
               </p>
             </div>
 
@@ -283,6 +290,105 @@ export default function Home() {
                             value={option}
                             required
                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className="sr-only"
+                          />
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Stage - مرحلة المشروع */}
+                  <div>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">أنت فين دلوقتي في مشروعك؟</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        "لسه فكرة ومش عارف أبدأ",
+                        "بدأت بس لسه في الأول",
+                        "شغّال ومحتاج أطوّر",
+                      ].map((option) => (
+                        <label
+                          key={option}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-sm font-medium ${formData.stage === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
+                          style={{
+                            borderColor: formData.stage === option ? ORANGE : "rgba(255,255,255,0.1)",
+                            backgroundColor: formData.stage === option ? `${ORANGE}15` : DARK_CARD,
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="stage"
+                            value={option}
+                            required
+                            onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                            className="sr-only"
+                          />
+                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.stage === option ? ORANGE : "rgba(255,255,255,0.3)" }}>
+                            {formData.stage === option && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ORANGE }} />}
+                          </div>
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Readiness - الجاهزية للبدء */}
+                  <div>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">جاهز تبدأ امتى؟</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        "جاهز أبدأ دلوقتي",
+                        "خلال شهر",
+                        "بس بسأل وبجمّع معلومات",
+                      ].map((option) => (
+                        <label
+                          key={option}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-sm font-medium ${formData.readiness === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
+                          style={{
+                            borderColor: formData.readiness === option ? GOLD : "rgba(255,255,255,0.1)",
+                            backgroundColor: formData.readiness === option ? `${GOLD}15` : DARK_CARD,
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="readiness"
+                            value={option}
+                            required
+                            onChange={(e) => setFormData({ ...formData, readiness: e.target.value })}
+                            className="sr-only"
+                          />
+                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.readiness === option ? GOLD : "rgba(255,255,255,0.3)" }}>
+                            {formData.readiness === option && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: GOLD }} />}
+                          </div>
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Preference - Online/Offline */}
+                  <div>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">تحب تتعلم إزاي؟</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        "أونلاين",
+                        "حضور في المقر",
+                        "مش فارق معايا",
+                      ].map((option) => (
+                        <label
+                          key={option}
+                          className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all text-xs md:text-sm font-medium text-center ${formData.preference === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
+                          style={{
+                            borderColor: formData.preference === option ? ORANGE : "rgba(255,255,255,0.1)",
+                            backgroundColor: formData.preference === option ? `${ORANGE}15` : DARK_CARD,
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="preference"
+                            value={option}
+                            required
+                            onChange={(e) => setFormData({ ...formData, preference: e.target.value })}
                             className="sr-only"
                           />
                           {option}
