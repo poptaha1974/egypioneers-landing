@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Package,
   TrendingUp,
@@ -24,6 +24,11 @@ import {
   ArrowLeft,
   Mail,
   Smartphone,
+  Download,
+  FileText,
+  Home as HomeIcon,
+  X,
+  Eye,
 } from "lucide-react";
 
 // ======================================================
@@ -102,6 +107,78 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showAllErrors, setShowAllErrors] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Local Storage: حفظ البيانات تلقائياً
+  const STORAGE_KEY = "egypioneers_form_data";
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData((prev) => ({ ...prev, ...parsed }));
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formState !== "success") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+    }
+  }, [formData, formState]);
+
+  // Clear storage on success
+  const clearSavedData = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  // PDF Generation
+  const generatePDF = () => {
+    const roleLabels: Record<string, string> = { student: "\u0637\u0627\u0644\u0628", employee: "\u0645\u0648\u0638\u0641", business_owner: "\u0635\u0627\u062d\u0628 \u0645\u0634\u0631\u0648\u0639", marketer: "\u0645\u0633\u0648\u0651\u0642", other: "\u0623\u062e\u0631\u0649" };
+    const stageLabels: Record<string, string> = { idea: "\u0644\u0633\u0647 \u0641\u0643\u0631\u0629", starting: "\u0628\u062f\u0623\u062a \u0628\u0633 \u0644\u0633\u0647 \u0641\u064a \u0627\u0644\u0623\u0648\u0644", running: "\u0634\u063a\u0651\u0627\u0644 \u0648\u0645\u062d\u062a\u0627\u062c \u0623\u0637\u0648\u0651\u0631" };
+    const readinessLabels: Record<string, string> = { now: "\u062c\u0627\u0647\u0632 \u062f\u0644\u0648\u0642\u062a\u064a", month: "\u062e\u0644\u0627\u0644 \u0634\u0647\u0631", exploring: "\u0628\u0633 \u0628\u0633\u0623\u0644" };
+    const prefLabels: Record<string, string> = { online: "\u0623\u0648\u0646\u0644\u0627\u064a\u0646", offline: "\u062d\u0636\u0648\u0631 \u0641\u064a \u0627\u0644\u0645\u0642\u0631", both: "\u0645\u0634 \u0641\u0627\u0631\u0642 \u0645\u0639\u0627\u064a\u0627" };
+
+    const content = `
+      <html dir="rtl">
+      <head><meta charset="utf-8"><title>\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u0633\u062c\u064a\u0644 - Egy-Pioneers</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; direction: rtl; color: #1a1a1a; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #EA8A1E; padding-bottom: 20px; }
+        .header h1 { color: #EA8A1E; margin: 0; font-size: 24px; }
+        .header p { color: #666; margin-top: 8px; }
+        .field { margin-bottom: 16px; padding: 12px 16px; background: #f9f9f9; border-radius: 8px; border-right: 4px solid #EA8A1E; }
+        .field-label { font-weight: bold; color: #333; margin-bottom: 4px; font-size: 14px; }
+        .field-value { color: #555; font-size: 16px; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #999; font-size: 12px; }
+      </style></head>
+      <body>
+        <div class="header">
+          <h1>Egy-Pioneers Academy</h1>
+          <p>\u0646\u0633\u062e\u0629 \u0645\u0646 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062e\u0627\u0635\u0629 \u0628\u0643</p>
+        </div>
+        <div class="field"><div class="field-label">\u0627\u0644\u0627\u0633\u0645</div><div class="field-value">${formData.name}</div></div>
+        <div class="field"><div class="field-label">\u0631\u0642\u0645 \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644</div><div class="field-value">${formData.phone}</div></div>
+        <div class="field"><div class="field-label">\u0627\u0644\u0625\u064a\u0645\u064a\u0644</div><div class="field-value">${formData.email}</div></div>
+        <div class="field"><div class="field-label">\u0627\u0644\u062d\u0627\u0644\u0629 \u0627\u0644\u062d\u0627\u0644\u064a\u0629</div><div class="field-value">${roleLabels[formData.role] || formData.role}</div></div>
+        <div class="field"><div class="field-label">\u0645\u0631\u062d\u0644\u0629 \u0627\u0644\u0645\u0634\u0631\u0648\u0639</div><div class="field-value">${stageLabels[formData.stage] || formData.stage}</div></div>
+        <div class="field"><div class="field-label">\u0627\u0644\u062c\u0627\u0647\u0632\u064a\u0629 \u0644\u0644\u0628\u062f\u0621</div><div class="field-value">${readinessLabels[formData.readiness] || formData.readiness}</div></div>
+        <div class="field"><div class="field-label">\u062a\u0641\u0636\u064a\u0644 \u0627\u0644\u062a\u0639\u0644\u0645</div><div class="field-value">${prefLabels[formData.preference] || formData.preference}</div></div>
+        <div class="field"><div class="field-label">\u0623\u0643\u0628\u0631 \u062a\u062d\u062f\u064a</div><div class="field-value">${formData.challenge}</div></div>
+        <div class="footer">
+          <p>\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u062a\u0633\u062c\u064a\u0644: ${new Date().toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}</p>
+          <p>Egy-Pioneers Academy | \u0641\u064a\u0644\u0627 139 - \u0627\u0644\u062a\u062c\u0645\u0639 \u0627\u0644\u0623\u0648\u0644</p>
+        </div>
+      </body></html>
+    `;
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(content);
+      printWindow.document.close();
+      setTimeout(() => { printWindow.print(); }, 500);
+    }
+  };
 
   // Real-time validation
   const getFieldError = (field: string): string => {
@@ -161,7 +238,7 @@ export default function Home() {
   const productsCounter = useCounter(350);
   const successCounter = useCounter(89);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Show all errors if form is invalid
@@ -170,6 +247,12 @@ export default function Home() {
       return;
     }
 
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const confirmAndSubmit = async () => {
+    setShowConfirmModal(false);
     setFormState("submitting");
 
     try {
@@ -190,6 +273,7 @@ export default function Home() {
 
       if (response.ok || response.status === 200 || response.status === 201) {
         setFormState("success");
+        clearSavedData();
         // Fire Meta Pixel Lead event
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq("track", "Lead", {
@@ -668,16 +752,47 @@ export default function Home() {
                   </motion.div>
 
                   <motion.div
+                    className="flex flex-col sm:flex-row gap-3 justify-center"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                   >
                     <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-                      <Button size="lg" className="text-white text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: "#25D366" }}>
+                      <Button size="lg" className="text-white text-lg px-6 py-5 font-bold shadow-xl w-full" style={{ backgroundColor: "#25D366" }}>
                         <MessageCircle className="w-5 h-5 ml-2" />
                         كلمنا على واتساب
                       </Button>
                     </a>
+                    <Button
+                      size="lg"
+                      onClick={generatePDF}
+                      className="text-white text-base px-6 py-5 font-bold border w-full sm:w-auto"
+                      style={{ backgroundColor: "transparent", borderColor: `${ORANGE}50` }}
+                    >
+                      <Download className="w-4 h-4 ml-2" />
+                      حمّل نسخة PDF
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    className="mt-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                  >
+                    <button
+                      onClick={() => {
+                        setFormState("idle");
+                        setFormData({ name: "", phone: "", email: "", role: "", challenge: "", stage: "", readiness: "", preference: "" });
+                        setTouched({});
+                        setShowAllErrors(false);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="text-white/40 hover:text-white/70 text-sm flex items-center gap-1 mx-auto transition-colors"
+                    >
+                      <HomeIcon className="w-3.5 h-3.5" />
+                      العودة للصفحة الرئيسية
+                    </button>
                   </motion.div>
                 </motion.div>
               </Card>
@@ -1048,6 +1163,87 @@ export default function Home() {
       >
         <MessageCircle className="w-7 h-7" />
       </a>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmModal && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop */}
+            <motion.div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setShowConfirmModal(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            {/* Modal Content */}
+            <motion.div
+              className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border p-6 shadow-2xl"
+              style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="absolute top-4 left-4 text-white/40 hover:text-white/80 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center mb-5">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: `${ORANGE}15` }}>
+                  <Eye className="w-6 h-6" style={{ color: ORANGE }} />
+                </div>
+                <h3 className="text-xl font-black text-white">راجع بياناتك قبل الإرسال</h3>
+                <p className="text-white/50 text-sm mt-1">تأكد إن كل حاجة صح علشان نقدر نتواصل معاك</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {[
+                  { label: "الاسم", value: formData.name },
+                  { label: "رقم الموبايل", value: formData.phone },
+                  { label: "الإيميل", value: formData.email },
+                  { label: "الحالة", value: formData.role === "student" ? "طالب" : formData.role === "employee" ? "موظف" : formData.role === "business_owner" ? "صاحب مشروع" : formData.role === "marketer" ? "مسوّق" : "أخرى" },
+                  { label: "مرحلة المشروع", value: formData.stage === "idea" ? "لسه فكرة" : formData.stage === "starting" ? "بدأت بس لسه في الأول" : "شغّال ومحتاج أطوّر" },
+                  { label: "الجاهزية", value: formData.readiness === "now" ? "جاهز دلوقتي" : formData.readiness === "month" ? "خلال شهر" : "بس بسأل" },
+                  { label: "تفضيل التعلم", value: formData.preference === "online" ? "أونلاين" : formData.preference === "offline" ? "حضور في المقر" : "مش فارق معايا" },
+                  { label: "أكبر تحدي", value: formData.challenge },
+                ].map((item, i) => (
+                  <div key={i} className="flex justify-between items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: DARK_CARD }}>
+                    <span className="text-white/50 text-xs shrink-0">{item.label}</span>
+                    <span className="text-white text-sm text-left font-medium">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 py-5 text-white/70 border font-bold"
+                  style={{ backgroundColor: "transparent", borderColor: "rgba(255,255,255,0.15)" }}
+                >
+                  عدّل البيانات
+                </Button>
+                <Button
+                  onClick={confirmAndSubmit}
+                  className="flex-1 py-5 text-black font-bold text-lg"
+                  style={{ backgroundColor: ORANGE }}
+                >
+                  تأكيد وإرسال
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
