@@ -96,6 +96,49 @@ export default function Home() {
   });
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  // Real-time validation
+  const getFieldError = (field: string): string => {
+    switch (field) {
+      case "name":
+        if (!formData.name.trim()) return "اكتب اسمك علشان نعرف نكلمك";
+        if (formData.name.trim().length < 2) return "الاسم لازم يكون حرفين على الأقل";
+        return "";
+      case "role":
+        if (!formData.role) return "اختار أنت حالياً إيه";
+        return "";
+      case "stage":
+        if (!formData.stage) return "اختار أنت فين دلوقتي في مشروعك";
+        return "";
+      case "readiness":
+        if (!formData.readiness) return "اختار جاهز تبدأ امتى";
+        return "";
+      case "preference":
+        if (!formData.preference) return "اختار تحب تتعلم إزاي";
+        return "";
+      case "challenge":
+        if (!formData.challenge.trim()) return "قولنا أكبر تحدي عندك — ده بيساعدنا نوجّهك صح";
+        if (formData.challenge.trim().length < 5) return "اكتب تفاصيل أكتر شوية علشان نفهمك";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const isFormValid = (): boolean => {
+    const fields = ["name", "role", "stage", "readiness", "preference", "challenge"];
+    return fields.every((f) => !getFieldError(f));
+  };
+
+  const markTouched = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const shouldShowError = (field: string): boolean => {
+    return (touched[field] || showAllErrors) && !!getFieldError(field);
+  };
 
   const studentsCounter = useCounter(1200);
   const productsCounter = useCounter(350);
@@ -103,6 +146,13 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Show all errors if form is invalid
+    if (!isFormValid()) {
+      setShowAllErrors(true);
+      return;
+    }
+
     setFormState("submitting");
 
     try {
@@ -256,13 +306,19 @@ export default function Home() {
                     <label className="block font-semibold mb-2 text-sm text-white/90">اسمك إيه؟</label>
                     <input
                       type="text"
-                      required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2"
-                      style={{ backgroundColor: DARK_CARD, borderColor: "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
+                      onBlur={() => markTouched("name")}
+                      className={`w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("name") ? "border-red-500/70" : ""}`}
+                      style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("name") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
                       placeholder="الاسم الأول يكفي"
                     />
+                    {shouldShowError("name") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("name")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Role - أنت حالياً إيه؟ */}
@@ -280,7 +336,7 @@ export default function Home() {
                           key={option}
                           className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all text-sm font-medium ${formData.role === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
                           style={{
-                            borderColor: formData.role === option ? ORANGE : "rgba(255,255,255,0.1)",
+                            borderColor: formData.role === option ? ORANGE : shouldShowError("role") ? "#EF444450" : "rgba(255,255,255,0.1)",
                             backgroundColor: formData.role === option ? `${ORANGE}15` : DARK_CARD,
                           }}
                         >
@@ -288,14 +344,19 @@ export default function Home() {
                             type="radio"
                             name="role"
                             value={option}
-                            required
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            onChange={(e) => { setFormData({ ...formData, role: e.target.value }); markTouched("role"); }}
                             className="sr-only"
                           />
                           {option}
                         </label>
                       ))}
                     </div>
+                    {shouldShowError("role") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("role")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Stage - مرحلة المشروع */}
@@ -311,7 +372,7 @@ export default function Home() {
                           key={option}
                           className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-sm font-medium ${formData.stage === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
                           style={{
-                            borderColor: formData.stage === option ? ORANGE : "rgba(255,255,255,0.1)",
+                            borderColor: formData.stage === option ? ORANGE : shouldShowError("stage") ? "#EF444450" : "rgba(255,255,255,0.1)",
                             backgroundColor: formData.stage === option ? `${ORANGE}15` : DARK_CARD,
                           }}
                         >
@@ -319,17 +380,22 @@ export default function Home() {
                             type="radio"
                             name="stage"
                             value={option}
-                            required
-                            onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                            onChange={(e) => { setFormData({ ...formData, stage: e.target.value }); markTouched("stage"); }}
                             className="sr-only"
                           />
-                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.stage === option ? ORANGE : "rgba(255,255,255,0.3)" }}>
+                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.stage === option ? ORANGE : shouldShowError("stage") ? "#EF444450" : "rgba(255,255,255,0.3)" }}>
                             {formData.stage === option && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ORANGE }} />}
                           </div>
                           {option}
                         </label>
                       ))}
                     </div>
+                    {shouldShowError("stage") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("stage")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Readiness - الجاهزية للبدء */}
@@ -345,7 +411,7 @@ export default function Home() {
                           key={option}
                           className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-sm font-medium ${formData.readiness === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
                           style={{
-                            borderColor: formData.readiness === option ? GOLD : "rgba(255,255,255,0.1)",
+                            borderColor: formData.readiness === option ? GOLD : shouldShowError("readiness") ? "#EF444450" : "rgba(255,255,255,0.1)",
                             backgroundColor: formData.readiness === option ? `${GOLD}15` : DARK_CARD,
                           }}
                         >
@@ -353,17 +419,22 @@ export default function Home() {
                             type="radio"
                             name="readiness"
                             value={option}
-                            required
-                            onChange={(e) => setFormData({ ...formData, readiness: e.target.value })}
+                            onChange={(e) => { setFormData({ ...formData, readiness: e.target.value }); markTouched("readiness"); }}
                             className="sr-only"
                           />
-                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.readiness === option ? GOLD : "rgba(255,255,255,0.3)" }}>
+                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: formData.readiness === option ? GOLD : shouldShowError("readiness") ? "#EF444450" : "rgba(255,255,255,0.3)" }}>
                             {formData.readiness === option && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: GOLD }} />}
                           </div>
                           {option}
                         </label>
                       ))}
                     </div>
+                    {shouldShowError("readiness") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("readiness")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Preference - Online/Offline */}
@@ -379,7 +450,7 @@ export default function Home() {
                           key={option}
                           className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all text-xs md:text-sm font-medium text-center ${formData.preference === option ? "border-opacity-100 text-white" : "text-white/60 hover:text-white/80"}`}
                           style={{
-                            borderColor: formData.preference === option ? ORANGE : "rgba(255,255,255,0.1)",
+                            borderColor: formData.preference === option ? ORANGE : shouldShowError("preference") ? "#EF444450" : "rgba(255,255,255,0.1)",
                             backgroundColor: formData.preference === option ? `${ORANGE}15` : DARK_CARD,
                           }}
                         >
@@ -387,28 +458,39 @@ export default function Home() {
                             type="radio"
                             name="preference"
                             value={option}
-                            required
-                            onChange={(e) => setFormData({ ...formData, preference: e.target.value })}
+                            onChange={(e) => { setFormData({ ...formData, preference: e.target.value }); markTouched("preference"); }}
                             className="sr-only"
                           />
                           {option}
                         </label>
                       ))}
                     </div>
+                    {shouldShowError("preference") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("preference")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Challenge - أكبر تحدي */}
                   <div>
                     <label className="block font-semibold mb-2 text-sm text-white/90">أكبر تحدي عندك دلوقتي إيه؟</label>
                     <textarea
-                      required
                       value={formData.challenge}
                       onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white resize-none focus:ring-2"
-                      style={{ backgroundColor: DARK_CARD, borderColor: "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
+                      onBlur={() => markTouched("challenge")}
+                      className={`w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white resize-none focus:ring-2 ${shouldShowError("challenge") ? "border-red-500/70" : ""}`}
+                      style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("challenge") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
                       placeholder="مثلاً: مش لاقي منتج مناسب / مش عارف أبدأ إزاي / محتاج أفهم التسويق..."
                       rows={3}
                     />
+                    {shouldShowError("challenge") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("challenge")}
+                      </p>
+                    )}
                   </div>
 
                   {/* Error State */}
