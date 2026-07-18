@@ -22,6 +22,8 @@ import {
   GraduationCap,
   AlertCircle,
   ArrowLeft,
+  Mail,
+  Smartphone,
 } from "lucide-react";
 
 // ======================================================
@@ -88,6 +90,8 @@ function AnimatedSection({ children, className = "", delay = 0, id, style }: { c
 export default function Home() {
   const [formData, setFormData] = useState({
     name: "",
+    phone: "",
+    email: "",
     role: "",
     challenge: "",
     stage: "",
@@ -105,6 +109,14 @@ export default function Home() {
       case "name":
         if (!formData.name.trim()) return "اكتب اسمك علشان نعرف نكلمك";
         if (formData.name.trim().length < 2) return "الاسم لازم يكون حرفين على الأقل";
+        return "";
+      case "phone":
+        if (!formData.phone.trim()) return "اكتب رقم موبايلك علشان نقدر نتواصل معاك";
+        if (!/^(\+?20|0)?1[0-9]{9}$/.test(formData.phone.replace(/\s|-/g, ""))) return "رقم الموبايل مش صح — لازم يبدأ ب 01 ويكون 11 رقم";
+        return "";
+      case "email":
+        if (!formData.email.trim()) return "اكتب الإيميل بتاعك";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) return "الإيميل مش صح — تأكد من الصيغة";
         return "";
       case "role":
         if (!formData.role) return "اختار أنت حالياً إيه";
@@ -127,10 +139,15 @@ export default function Home() {
     }
   };
 
+  const ALL_FIELDS = ["name", "phone", "email", "role", "stage", "readiness", "preference", "challenge"];
+
   const isFormValid = (): boolean => {
-    const fields = ["name", "role", "stage", "readiness", "preference", "challenge"];
-    return fields.every((f) => !getFieldError(f));
+    return ALL_FIELDS.every((f) => !getFieldError(f));
   };
+
+  // Progress bar calculation
+  const completedFields = ALL_FIELDS.filter((f) => !getFieldError(f)).length;
+  const progressPercent = Math.round((completedFields / ALL_FIELDS.length) * 100);
 
   const markTouched = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -161,6 +178,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
           role: formData.role,
           challenge: formData.challenge,
           stage: formData.stage,
@@ -300,6 +319,26 @@ export default function Home() {
 
             {formState === "idle" || formState === "submitting" || formState === "error" ? (
               <Card className="p-6 md:p-8 shadow-2xl border" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}25` }}>
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">اكتمال البيانات</span>
+                    <span className="text-xs font-bold" style={{ color: progressPercent === 100 ? "#10B981" : ORANGE }}>{progressPercent}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${DARK_CARD}` }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: progressPercent === 100 ? "#10B981" : ORANGE }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent}%` }}
+                      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                    />
+                  </div>
+                  <p className="text-xs mt-1.5" style={{ color: progressPercent === 100 ? "#10B981" : "rgba(255,255,255,0.35)" }}>
+                    {progressPercent === 100 ? "تمام — ابعت بياناتك دلوقتي!" : `${completedFields} من ${ALL_FIELDS.length} أسئلة مكتملة`}
+                  </p>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Name */}
                   <div>
@@ -317,6 +356,54 @@ export default function Home() {
                       <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
                         <AlertCircle className="w-3 h-3" />
                         {getFieldError("name")}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">رقم الموبايل</label>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                      <input
+                        type="tel"
+                        dir="ltr"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onBlur={() => markTouched("phone")}
+                        className={`w-full px-4 pl-10 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("phone") ? "border-red-500/70" : ""}`}
+                        style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("phone") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
+                        placeholder="01xxxxxxxxx"
+                      />
+                    </div>
+                    {shouldShowError("phone") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("phone")}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">الإيميل</label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                      <input
+                        type="email"
+                        dir="ltr"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onBlur={() => markTouched("email")}
+                        className={`w-full px-4 pl-10 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("email") ? "border-red-500/70" : ""}`}
+                        style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("email") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
+                        placeholder="example@email.com"
+                      />
+                    </div>
+                    {shouldShowError("email") && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        {getFieldError("email")}
                       </p>
                     )}
                   </div>
@@ -505,13 +592,16 @@ export default function Home() {
                     type="submit"
                     size="lg"
                     disabled={formState === "submitting"}
-                    className="w-full text-black text-lg py-6 font-bold shadow-xl disabled:opacity-70"
+                    className="w-full text-black text-lg py-6 font-bold shadow-xl disabled:opacity-70 relative overflow-hidden transition-all duration-200 active:scale-[0.97]"
                     style={{ backgroundColor: ORANGE }}
                   >
                     {formState === "submitting" ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                        بنبعت...
+                      <span className="flex items-center justify-center gap-3">
+                        <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        <span>بنبعت بياناتك... استنى ثواني</span>
                       </span>
                     ) : (
                       <>
@@ -522,7 +612,7 @@ export default function Home() {
                   </Button>
 
                   <p className="text-center text-white/30 text-xs">
-                    هنتواصل معاك على واتساب خلال 24 ساعة بخطة مخصصة ليك
+                    🔒 بياناتك في أمان تام — هنتواصل معاك خلال 24 ساعة
                   </p>
                 </form>
               </Card>
@@ -532,25 +622,63 @@ export default function Home() {
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                  transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 >
-                  <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${ORANGE}15` }}>
-                    <CheckCircle className="w-8 h-8" style={{ color: ORANGE }} />
-                  </div>
-                  <h3 className="text-2xl font-black text-white mb-3">
-                    تمام، استلمنا بياناتك
-                  </h3>
-                  <p className="text-white/60 text-lg mb-6 leading-relaxed">
-                    بنراجعها دلوقتي علشان نوجّهك للخطوة الصح.
-                    <br />
-                    <span className="text-white/80 font-medium">عايز تبدأ فوراً؟ كلمنا على واتساب.</span>
-                  </p>
-                  <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="text-white text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: "#25D366" }}>
-                      <MessageCircle className="w-5 h-5 ml-2" />
-                      كلمنا على واتساب
-                    </Button>
-                  </a>
+                  {/* Animated checkmark */}
+                  <motion.div
+                    className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: "#10B98120" }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.4, type: "spring", stiffness: 200 }}
+                  >
+                    <CheckCircle className="w-10 h-10" style={{ color: "#10B981" }} />
+                  </motion.div>
+
+                  <motion.h3
+                    className="text-2xl md:text-3xl font-black text-white mb-3"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    شكراً ليك {formData.name ? formData.name.split(" ")[0] : ""} 🎉
+                  </motion.h3>
+
+                  <motion.p
+                    className="text-white/60 text-lg mb-4 leading-relaxed"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    استلمنا بياناتك وبنجهّزلك خطة عملية مخصصة.
+                  </motion.p>
+
+                  <motion.div
+                    className="p-4 rounded-xl mb-6"
+                    style={{ backgroundColor: `${DARK_CARD}` }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <p className="text-white/80 text-sm leading-relaxed">
+                      📩 هنتواصل معاك على <span className="font-bold" style={{ color: ORANGE }}>{formData.phone || "واتساب"}</span> خلال 24 ساعة
+                      <br />
+                      <span className="text-white/50 text-xs">عايز تبدأ فوراً؟ كلمنا دلوقتي على واتساب</span>
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+                      <Button size="lg" className="text-white text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: "#25D366" }}>
+                        <MessageCircle className="w-5 h-5 ml-2" />
+                        كلمنا على واتساب
+                      </Button>
+                    </a>
+                  </motion.div>
                 </motion.div>
               </Card>
             )}
