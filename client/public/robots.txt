@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://egypioneers-836duxqk.manus.space/sitemap.xml

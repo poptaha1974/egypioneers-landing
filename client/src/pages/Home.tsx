@@ -1031,6 +1031,80 @@ export default function Home() {
         </div>
       </AnimatedSection>
 
+      {/* Testimonials Section */}
+      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_CARD }}>
+        <div className="container">
+          <div className="text-center mb-10">
+            <Badge className="mb-4 text-sm px-4 py-1.5" style={{ backgroundColor: `${ORANGE}15`, color: ORANGE }}>
+              ⭐ 4.8/5 من 1200+ طالب
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
+              اللي جرّبوا بيقولوا إيه؟
+            </h2>
+            <p className="text-white/50 text-lg">
+              تقييمات حقيقية من طلاب بدأوا مشاريعهم معانا
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                name: "أحمد محمد",
+                role: "صاحب مشروع أونلاين",
+                text: "كنت تايه ومش عارف أبدأ منين. بعد الكورس عملت أول بيعة في أسبوعين بس.",
+                stars: 5,
+              },
+              {
+                name: "سارة علي",
+                role: "موظفة بدأت مشروع جانبي",
+                text: "المنتج كان جاهز والحملة اتعملت معايا. حرفياً كل حاجة كانت جاهزة علشان أبدأ.",
+                stars: 5,
+              },
+              {
+                name: "محمد إبراهيم",
+                role: "طالب جامعي",
+                text: "اتعلمت إزاي أبيع وأنا لسه في الكلية. الفريق فضل معايا لحد ما عملت أول 1000 جنيه.",
+                stars: 5,
+              },
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.4 }}
+              >
+                <Card className="p-6 h-full border" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}15` }}>
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: testimonial.stars }).map((_, s) => (
+                      <span key={s} className="text-lg" style={{ color: GOLD }}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-white/80 text-sm leading-relaxed mb-4">
+                    “{testimonial.text}”
+                  </p>
+                  <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-black" style={{ backgroundColor: ORANGE }}>
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-bold">{testimonial.name}</p>
+                      <p className="text-white/40 text-xs">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-white/30 text-xs">
+              التقييمات من طلاب حقيقيين أتمّوا البرنامج العملي
+            </p>
+          </div>
+        </div>
+      </AnimatedSection>
+
       {/* FAQ Section */}
       <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
