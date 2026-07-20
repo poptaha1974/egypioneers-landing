@@ -24,79 +24,81 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    
-    <!-- Schema.org Structured Data -->
+
+    <!-- Schema.org Structured Data: Organization -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "أكاديمية Egy-Pioneers",
-      "url": "https://egypioneers-836duxqk.manus.space",
-      "logo": "https://egypioneers-836duxqk.manus.space/manus-storage/egypioneers-logo_86bbc342.png",
-      "description": "دبلومة عملية من أول منتج لأول عملية بيع. معرض حقيقي ومخزون فعلي.",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "فيلا 139 التجمع الأول قدام محل عبدالعزيز",
-        "addressLocality": "القاهرة الجديدة",
-        "addressCountry": "EG"
-      },
-      "sameAs": [
-        "https://wa.me/20103730300"
-      ]
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "أكاديمية Egy-Pioneers",
+  "url": "https://egypioneers-836duxqk.manus.space",
+  "logo": "https://egypioneers-836duxqk.manus.space/manus-storage/egypioneers-logo_86bbc342.png",
+  "description": "دبلومة عملية من أول منتج لأول عملية بيع. معرض حقيقي ومخزون فعلي.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "فيلا 139 التجمع الأول قدام محل عبدالعزيز",
+    "addressLocality": "القاهرة الجديدة",
+    "addressCountry": "EG"
+  },
+  "sameAs": [
+    "https://wa.me/20103730300"
+  ]
+}
     </script>
+
+    <!-- Schema.org Structured Data: Course -->
     <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "دبلومة ريادة الأعمال والتجارة الإلكترونية",
+  "description": "مسار عملي متكامل من اختيار المنتج لأول عملية بيع حقيقية خلال 30 يوم. يشمل منتج جاهز + مخزون + حملة إعلانية + فريق دعم.",
+  "provider": {
+    "@type": "EducationalOrganization",
+    "name": "أكاديمية Egy-Pioneers"
+  },
+  "courseMode": ["Blended", "Online", "Onsite"],
+  "educationalLevel": "Beginner",
+  "inLanguage": "ar",
+  "hasCourseInstance": [
     {
-      "@context": "https://schema.org",
-      "@type": "Course",
-      "name": "دبلومة ريادة الأعمال والتجارة الإلكترونية",
-      "description": "مسار عملي متكامل من اختيار المنتج لأول عملية بيع حقيقية خلال 30 يوم. يشمل منتج جاهز + مخزون + حملة إعلانية + فريق دعم.",
-      "provider": {
-        "@type": "EducationalOrganization",
-        "name": "أكاديمية Egy-Pioneers"
+      "@type": "CourseInstance",
+      "name": "ويبينار مجاني أسبوعي",
+      "courseMode": "Online",
+      "courseSchedule": {
+        "@type": "Schedule",
+        "repeatFrequency": "P1W",
+        "byDay": "Wednesday",
+        "startTime": "18:00",
+        "endTime": "21:00"
       },
-      "courseMode": ["Blended", "Online", "Onsite"],
-      "educationalLevel": "Beginner",
-      "inLanguage": "ar",
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "name": "ويبينار مجاني أسبوعي",
-          "courseMode": "Online",
-          "courseSchedule": {
-            "@type": "Schedule",
-            "repeatFrequency": "P1W",
-            "byDay": "Wednesday",
-            "startTime": "18:00",
-            "endTime": "21:00"
-          },
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "EGP",
-            "availability": "https://schema.org/InStock"
-          }
-        },
-        {
-          "@type": "CourseInstance",
-          "name": "الكورس العملي الكامل",
-          "courseMode": "Blended",
-          "courseSchedule": {
-            "@type": "Schedule",
-            "repeatFrequency": "P1W",
-            "byDay": ["Monday", "Thursday"],
-            "startTime": "18:00",
-            "endTime": "21:00"
-          }
-        }
-      ],
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "bestRating": "5",
-        "ratingCount": "1200"
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EGP",
+        "availability": "https://schema.org/InStock"
+      }
+    },
+    {
+      "@type": "CourseInstance",
+      "name": "الكورس العملي الكامل",
+      "courseMode": "Blended",
+      "courseSchedule": {
+        "@type": "Schedule",
+        "repeatFrequency": "P1W",
+        "byDay": ["Monday", "Thursday"],
+        "startTime": "18:00",
+        "endTime": "21:00"
       }
     }
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "bestRating": "5",
+    "ratingCount": "1200"
+  }
+}
     </script>
 
     <!-- Meta Pixel Code -->
