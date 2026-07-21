@@ -334,6 +334,13 @@ export default function Home() {
         stage: formData.stage,
         readiness: formData.readiness,
       });
+      // Auto-reset form after 10 seconds
+      setTimeout(() => {
+        setFormState("idle");
+        setFormData({ name: "", phone: "", email: "", role: "", challenge: "", stage: "", readiness: "", preference: "" });
+        setTouched({});
+        setShowAllErrors(false);
+      }, 10000);
     } catch {
       setFormState("error");
     }
@@ -749,23 +756,72 @@ export default function Home() {
                 </form>
               </Card>
             ) : (
-              /* Success State */
-              <Card className="p-8 md:p-10 shadow-2xl border text-center" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
+              /* Success State - Enhanced with Confetti */
+              <Card className="p-8 md:p-10 shadow-2xl border text-center relative overflow-hidden" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
+                {/* Confetti Particles */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  {Array.from({ length: 30 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: [ORANGE, GOLD, "#10B981", "#3B82F6", "#EF4444", "#8B5CF6"][i % 6],
+                        left: `${Math.random() * 100}%`,
+                        top: `-5%`,
+                      }}
+                      initial={{ y: -20, opacity: 1, rotate: 0 }}
+                      animate={{
+                        y: [0, 400 + Math.random() * 200],
+                        x: [0, (Math.random() - 0.5) * 100],
+                        opacity: [1, 1, 0],
+                        rotate: [0, Math.random() * 720 - 360],
+                      }}
+                      transition={{
+                        duration: 2 + Math.random() * 1.5,
+                        delay: Math.random() * 0.8,
+                        ease: "easeOut",
+                      }}
+                    />
+                  ))}
+                </div>
+
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 >
-                  {/* Animated checkmark */}
-                  <motion.div
-                    className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "#10B98120" }}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, duration: 0.4, type: "spring", stiffness: 200 }}
-                  >
-                    <CheckCircle className="w-10 h-10" style={{ color: "#10B981" }} />
-                  </motion.div>
+                  {/* Animated checkmark with pulse ring */}
+                  <div className="relative w-24 h-24 mx-auto mb-6">
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: "#10B98115" }}
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: [1, 1.5, 1.5], opacity: [0.5, 0.2, 0] }}
+                      transition={{ delay: 0.3, duration: 1.2, ease: "easeOut" }}
+                    />
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: "#10B98115" }}
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: [1, 1.3, 1.3], opacity: [0.5, 0.2, 0] }}
+                      transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
+                    />
+                    <motion.div
+                      className="w-24 h-24 rounded-full flex items-center justify-center relative"
+                      style={{ backgroundColor: "#10B98120" }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, duration: 0.5, type: "spring", stiffness: 200, damping: 12 }}
+                    >
+                      <motion.div
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{ pathLength: 1, opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.4 }}
+                      >
+                        <CheckCircle className="w-12 h-12" style={{ color: "#10B981" }} />
+                      </motion.div>
+                    </motion.div>
+                  </div>
 
                   <motion.h3
                     className="text-2xl md:text-3xl font-black text-white mb-3"

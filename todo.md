@@ -10,3 +10,9 @@
 - [x] Connect Home.tsx form to tRPC leads.submit mutation
 - [x] Keep webhook (n8n) as parallel fallback for lead submission
 - [x] Add vitest test for leads submission endpoint
+- [x] Create Admin Dashboard page with leads table (filterable by HOT/WARM/COLD)
+- [x] Add search functionality in dashboard (by name, phone, email)
+- [x] Add Excel/CSV export button in dashboard
+- [x] Improve Success Animation in the form (confetti/checkmark animation)
+- [x] Auto-clear form fields after successful submission
+- [x] Register dashboard route in App.tsx (admin-only)

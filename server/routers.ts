@@ -4,6 +4,15 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { createLead, getAllLeads, getLeadsByStatus } from "./db";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+
+// Admin-only procedure: only users with role=admin can access
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+  }
+  return next({ ctx });
+});
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -51,13 +60,13 @@ export const appRouter = router({
         return result;
       }),
 
-    // Protected: Admin فقط يشوف الـ leads
-    list: protectedProcedure.query(async () => {
+    // Admin-only: Admin فقط يشوف الـ leads
+    list: adminProcedure.query(async () => {
       return getAllLeads();
     }),
 
-    // Protected: فلترة بالحالة
-    byStatus: protectedProcedure
+    // Admin-only: فلترة بالحالة
+    byStatus: adminProcedure
       .input(z.object({ status: z.enum(["HOT", "WARM", "COLD"]) }))
       .query(async ({ input }) => {
         return getLeadsByStatus(input.status);
