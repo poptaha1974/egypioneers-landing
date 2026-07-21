@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +95,10 @@ function AnimatedSection({ children, className = "", delay = 0, id, style }: { c
 }
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -284,12 +290,27 @@ export default function Home() {
     setShowConfirmModal(true);
   };
 
+  const submitMutation = trpc.leads.submit.useMutation();
+
   const confirmAndSubmit = async () => {
     setShowConfirmModal(false);
     setFormState("submitting");
 
     try {
-      const response = await fetch(WEBHOOK_URL, {
+      // 1. حفظ في الـ Database عبر tRPC
+      await submitMutation.mutateAsync({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        role: formData.role || undefined,
+        challenge: formData.challenge || undefined,
+        stage: formData.stage || undefined,
+        readiness: formData.readiness || undefined,
+        preference: formData.preference || undefined,
+      });
+
+      // 2. إرسال للـ webhook (n8n) بشكل متوازي — لو فشل مش مشكلة
+      fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -302,21 +323,17 @@ export default function Home() {
           readiness: formData.readiness,
           preference: formData.preference,
         }),
-      });
+      }).catch(() => {}); // silent fail for webhook
 
-      if (response.ok || response.status === 200 || response.status === 201) {
-        setFormState("success");
-        clearSavedData();
-        // Fire Meta Pixel Lead event
-        fbq("track", "Lead", {
-          content_name: "EgyPioneers Qualification Form",
-          role: formData.role,
-          stage: formData.stage,
-          readiness: formData.readiness,
-        });
-      } else {
-        setFormState("error");
-      }
+      setFormState("success");
+      clearSavedData();
+      // Fire Meta Pixel Lead event
+      fbq("track", "Lead", {
+        content_name: "EgyPioneers Qualification Form",
+        role: formData.role,
+        stage: formData.stage,
+        readiness: formData.readiness,
+      });
     } catch {
       setFormState("error");
     }
