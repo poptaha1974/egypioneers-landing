@@ -109,6 +109,39 @@ export default function Home() {
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Meta Pixel helper
+  const fbq = (...args: any[]) => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq(...args);
+    }
+  };
+
+  // ViewContent: fire once on first form interaction
+  const hasTrackedViewContent = useRef(false);
+  const handleFormInteraction = () => {
+    if (!hasTrackedViewContent.current) {
+      hasTrackedViewContent.current = true;
+      fbq("track", "ViewContent", { content_name: "EgyPioneers Lead Form" });
+    }
+  };
+
+  // Schedule: fire on WhatsApp click
+  const handleWhatsAppClick = () => {
+    fbq("track", "Schedule", { content_name: "WhatsApp Contact" });
+  };
+
+  // CompleteRegistration: fire when form succeeds
+  const hasTrackedComplete = useRef(false);
+  useEffect(() => {
+    if (formState === "success" && !hasTrackedComplete.current) {
+      hasTrackedComplete.current = true;
+      fbq("track", "CompleteRegistration", {
+        content_name: "EgyPioneers Qualification Complete",
+        status: true,
+      });
+    }
+  }, [formState]);
+
   // Local Storage: حفظ البيانات تلقائياً
   const STORAGE_KEY = "egypioneers_form_data";
 
@@ -275,14 +308,12 @@ export default function Home() {
         setFormState("success");
         clearSavedData();
         // Fire Meta Pixel Lead event
-        if (typeof window !== "undefined" && (window as any).fbq) {
-          (window as any).fbq("track", "Lead", {
-            content_name: "EgyPioneers Qualification Form",
-            role: formData.role,
-            stage: formData.stage,
-            readiness: formData.readiness,
-          });
-        }
+        fbq("track", "Lead", {
+          content_name: "EgyPioneers Qualification Form",
+          role: formData.role,
+          stage: formData.stage,
+          readiness: formData.readiness,
+        });
       } else {
         setFormState("error");
       }
@@ -423,7 +454,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5" onFocusCapture={handleFormInteraction} onClickCapture={handleFormInteraction}>
                   {/* Name */}
                   <div>
                     <label className="block font-semibold mb-2 text-sm text-white/90">اسمك إيه؟</label>
@@ -757,7 +788,7 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
                       <Button size="lg" className="text-white text-lg px-6 py-5 font-bold shadow-xl w-full" style={{ backgroundColor: "#25D366" }}>
                         <MessageCircle className="w-5 h-5 ml-2" />
                         كلمنا على واتساب
@@ -1166,7 +1197,7 @@ export default function Home() {
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
                 <Button size="lg" variant="outline" className="text-white hover:bg-white/10 text-lg px-8 py-6 font-bold bg-transparent" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
                   <MessageCircle className="w-5 h-5 ml-2" />
                   أو كلمنا مباشرة
@@ -1232,6 +1263,7 @@ export default function Home() {
         href={WHATSAPP_URL}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={handleWhatsAppClick}
         className="fixed bottom-6 left-6 z-50 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-200"
         style={{ backgroundColor: "#25D366" }}
       >
