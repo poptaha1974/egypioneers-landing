@@ -3,6 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
+import { PostSubmitWhatsAppAction } from "@/components/PostSubmitWhatsAppAction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -918,14 +919,7 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    {postSubmitWhatsAppUrl && (
-                      <a href={postSubmitWhatsAppUrl} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
-                        <Button size="lg" className="text-white text-lg px-6 py-5 font-bold shadow-xl w-full" style={{ backgroundColor: "#25D366" }}>
-                          <MessageCircle className="w-5 h-5 ml-2" />
-                          كلمنا على واتساب
-                        </Button>
-                      </a>
-                    )}
+                    <PostSubmitWhatsAppAction whatsappUrl={postSubmitWhatsAppUrl} onWhatsAppClick={handleWhatsAppClick} />
                     <Button
                       size="lg"
                       onClick={generatePDF}
