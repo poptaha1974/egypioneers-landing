@@ -35,3 +35,7 @@
 ## جلسة Test Events النهائية
 
 بعد بدء جلسة Website جديدة للدومين `egypioneers-836duxqk.manus.space`، أُرسل تسجيل داخلي أخير باسم واضح ثم فتحت الصفحة WhatsApp من دون إرسال رسالة يدوية. عرضت Test Events في الساعة `02:47:57` من الجلسة نفسها الأحداث التالية من **Browser / Manual Setup**: `Lead` بحالة **Deduplicated**، و`Complete registration` بحالة **Processed**، و`Contact` بحالة **Processed**، و`CampaignWhatsAppHandoff` بحالة **Processed**. كما ظهرت أحداث فتح النموذج والـPageView في السياق نفسه. هذا يحسم فجوة القياس التي كانت قائمة قبل إطالة مهلة التحويل، ويثبت أن Pixel الأكاديمية هو الذي يستقبل أحداث صفحة Manus المنشورة لا أصول AllHomz أو egypioneer.
+
+### تحديث حالة Deduplication النهائية
+
+بعد اكتمال معالجة الجلسة، أعادت Test Events تصنيف `Lead` و`Complete registration` و`Contact` و`CampaignWhatsAppHandoff` جميعها بحالة **Deduplicated** من مصدر Browser/Manual Setup عند `02:47:57`. هذا يؤكد أن Meta وجدت أحداثاً مطابقة ومنعت عدّ التحويل مرتين. أما `PageView` الظاهر في الجلسة فهو **Processed** من المتصفح؛ وهذا منطقي لأن Workflow الخادمي الحالي يرسل إشارات Lead بعد التسجيل ولا يرسل مقابلاً خادمياً لـPageView. لذلك لا توجد مشكلة عدّ مزدوج موثقة في أعلى المسار ضمن هذا الاختبار.

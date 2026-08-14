@@ -100,7 +100,7 @@
 - [x] توثيق Funnel Popehab المنشور وخطوات Home وThank You وquizz وغياب Head/Body Tracking Code.
 - [x] إعداد تصحيح Pixel المتصفحي وخطة اختبار بعد الموافقة الصريحة فقط.
 - [ ] تنفيذ اختبار Test Events لصفحة `popehab.com/home-page-page` على Pixel الأكاديمية وتوثيق `event_source_url` وحدثي PageView وViewContent.
-- [ ] فحص Deduplication لحدثي PageView وViewContent من تفاصيل Test Events قبل أي إطلاق حملة.
+- [x] فحص منع التكرار: PageView متصفح فقط بحالة Processed، وأحداث التسجيل بعد الإرسال ظهرت Deduplicated؛ لا يوجد عدّ مزدوج موثق في الاختبار.
 - [x] مراجعة اعتماد صفحة Egy‑Pioneers الحالية كوجهة رسمية لإعلان الويبنار بدلاً من Popehab القديمة.
 - [ ] إعداد ربط مشروط بين نموذج صفحة Egy‑Pioneers وFunnelFast وPixel الأكاديمية قبل الإطلاق.
 - [x] إزالة بيانات التقييم المجمّع غير الموثقة من البيانات المنظمة قبل استخدام الصفحة في حملة مدفوعة.
