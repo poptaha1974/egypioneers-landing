@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  getStoreProgressState,
   hasThreeStoreOnboardingSteps,
   isEgyPioneersStoreUrl,
   STORE_ONBOARDING_STEPS,
+  STORE_TRACKING_EVENTS,
   STORE_URL,
 } from "../client/src/lib/storeLink";
 
@@ -22,5 +24,23 @@ describe("رابط منصة منتجات Egy-Pioneers", () => {
       "دور وقارن",
       "راجع واطلب",
     ]);
+  });
+
+  it("يعرض 33% وتوجيه الخطوة التالية بعد إتمام أول خطوة", () => {
+    expect(getStoreProgressState(1)).toMatchObject({
+      completedSteps: 1,
+      totalSteps: 3,
+      progressPercent: 33,
+      isFirstStepComplete: true,
+      nextStep: { number: "02", title: "دور وقارن" },
+    });
+  });
+
+  it("يحدد أحداث Meta مخصصة مستقلة لدليل المنصة وفتحها وإتمام الخطوة الأولى", () => {
+    expect(STORE_TRACKING_EVENTS).toEqual({
+      guideOpened: "WholesalePlatformGuideOpen",
+      platformOpened: "WholesalePlatformOpen",
+      firstStepCompleted: "WholesalePlatformStepOneCompleted",
+    });
   });
 });

@@ -18,8 +18,28 @@ export const STORE_ONBOARDING_STEPS = [
   },
 ] as const;
 
+export const STORE_TRACKING_EVENTS = {
+  guideOpened: "WholesalePlatformGuideOpen",
+  platformOpened: "WholesalePlatformOpen",
+  firstStepCompleted: "WholesalePlatformStepOneCompleted",
+} as const;
+
 export function hasThreeStoreOnboardingSteps() {
   return STORE_ONBOARDING_STEPS.length === 3;
+}
+
+export function getStoreProgressState(completedSteps: number) {
+  const totalSteps = STORE_ONBOARDING_STEPS.length;
+  const normalizedCompletedSteps = Math.max(0, Math.min(completedSteps, totalSteps));
+  const nextStep = STORE_ONBOARDING_STEPS[normalizedCompletedSteps] ?? null;
+
+  return {
+    completedSteps: normalizedCompletedSteps,
+    totalSteps,
+    progressPercent: Math.round((normalizedCompletedSteps / totalSteps) * 100),
+    isFirstStepComplete: normalizedCompletedSteps >= 1,
+    nextStep,
+  };
 }
 
 export function isEgyPioneersStoreUrl(value: string) {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { STORE_ONBOARDING_STEPS, STORE_URL } from "@/lib/storeLink";
+import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -129,6 +129,7 @@ export default function Home() {
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showStoreGuide, setShowStoreGuide] = useState(false);
+  const [completedStoreSteps, setCompletedStoreSteps] = useState(0);
 
   // Meta Pixel helper
   const fbq = (...args: any[]) => {
@@ -152,18 +153,30 @@ export default function Home() {
   };
 
   const handleStoreClick = () => {
-    fbq("trackCustom", "WholesalePlatformClick", {
+    fbq("trackCustom", STORE_TRACKING_EVENTS.platformOpened, {
       content_name: "Egy-Pioneers Wholesale Platform",
       destination: STORE_URL,
+      completed_store_steps: completedStoreSteps,
     });
   };
 
   const openStoreGuide = () => {
-    fbq("trackCustom", "WholesalePlatformGuideOpen", {
+    fbq("trackCustom", STORE_TRACKING_EVENTS.guideOpened, {
       content_name: "Three Store Onboarding Steps",
     });
     setShowStoreGuide(true);
   };
+
+  const markFirstStoreStepComplete = () => {
+    setCompletedStoreSteps((current) => Math.max(current, 1));
+    fbq("trackCustom", STORE_TRACKING_EVENTS.firstStepCompleted, {
+      content_name: "Store login completed",
+      completed_store_steps: 1,
+      progress_percent: 33,
+    });
+  };
+
+  const storeProgress = getStoreProgressState(completedStoreSteps);
 
   // CompleteRegistration: fire when form succeeds
   const hasTrackedComplete = useRef(false);
@@ -1387,9 +1400,39 @@ export default function Home() {
             <DialogDescription className="text-white/55 leading-relaxed">اعتبرها زي ما تدخل معرض كبير: الأول تسجل اسمك، بعدها تلف وتشوف البضاعة، وفي الآخر تراجع اختيارك قبل ما تدفع.</DialogDescription>
           </DialogHeader>
 
+          <div className="rounded-xl border p-4" style={{ backgroundColor: `${ORANGE}0d`, borderColor: `${ORANGE}35` }} aria-live="polite">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${ORANGE}20` }}>
+                  <Target className="w-4 h-4" style={{ color: ORANGE }} />
+                </div>
+                <div>
+                  <p className="text-white text-sm font-bold">تقدمك في بداية المنصة</p>
+                  <p className="text-white/45 text-xs">{storeProgress.completedSteps} من {storeProgress.totalSteps} خطوات مكتملة</p>
+                </div>
+              </div>
+              <Badge className="border" style={{ backgroundColor: storeProgress.isFirstStepComplete ? "rgba(16,185,129,0.16)" : `${GOLD}15`, color: storeProgress.isFirstStepComplete ? "#6EE7B7" : GOLD, borderColor: storeProgress.isFirstStepComplete ? "rgba(16,185,129,0.35)" : `${GOLD}35` }}>
+                {storeProgress.isFirstStepComplete ? "برافو — الخطوة الأولى تمت" : "ابدأ من الخطوة الأولى"}
+              </Badge>
+            </div>
+            <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.08)" }}>
+              <motion.div
+                className="h-full rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${storeProgress.progressPercent}%` }}
+                transition={{ duration: 0.36, ease: [0.23, 1, 0.32, 1] }}
+                style={{ backgroundColor: storeProgress.isFirstStepComplete ? "#10B981" : ORANGE }}
+              />
+            </div>
+            {storeProgress.isFirstStepComplete && storeProgress.nextStep && (
+              <p className="text-xs mt-2" style={{ color: "#A7F3D0" }}>الخطوة الجاية: <strong>{storeProgress.nextStep.title}</strong> — خليك ماشي واحدة واحدة.</p>
+            )}
+          </div>
+
           <div className="space-y-3 mt-1">
             {STORE_ONBOARDING_STEPS.map((step, index) => {
               const StepIcon = STORE_GUIDE_ICONS[index] ?? CheckCircle;
+              const isCompleted = index < storeProgress.completedSteps;
 
               return (
                 <motion.div
@@ -1398,17 +1441,22 @@ export default function Home() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.08, duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
                   className="flex gap-4 rounded-xl border p-4"
-                  style={{ backgroundColor: DARK_CARD, borderColor: "rgba(255,255,255,0.08)" }}
+                  style={{ backgroundColor: isCompleted ? "rgba(16,185,129,0.08)" : DARK_CARD, borderColor: isCompleted ? "rgba(16,185,129,0.35)" : "rgba(255,255,255,0.08)" }}
                 >
-                  <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}>
-                    {step.number}
+                  <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: isCompleted ? "rgba(16,185,129,0.18)" : `${ORANGE}18`, color: isCompleted ? "#6EE7B7" : ORANGE }}>
+                    {isCompleted ? <CheckCircle className="w-5 h-5" /> : step.number}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <StepIcon className="w-4 h-4" style={{ color: GOLD }} />
                       <h3 className="font-bold text-white">{step.title}</h3>
                     </div>
                     <p className="text-white/55 text-sm leading-relaxed">{step.description}</p>
+                    {index === 0 && !storeProgress.isFirstStepComplete && (
+                      <button type="button" onClick={markFirstStoreStepComplete} className="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0" style={{ color: "#6EE7B7", borderColor: "rgba(16,185,129,0.38)", backgroundColor: "rgba(16,185,129,0.10)" }}>
+                        سجّلت دخولي — كمّلني للخطوة الجاية
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               );
