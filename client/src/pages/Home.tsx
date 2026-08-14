@@ -1,10 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { STORE_URL } from "@/lib/storeLink";
+import { STORE_ONBOARDING_STEPS, STORE_URL } from "@/lib/storeLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Package,
@@ -35,6 +42,8 @@ import {
   ExternalLink,
   Search,
   ShoppingCart,
+  LogIn,
+  Sparkles,
 } from "lucide-react";
 
 // ======================================================
@@ -55,6 +64,7 @@ const GOLD = "#D4A853";
 const DARK = "#0A0A0A";
 const DARK_CARD = "#141414";
 const DARK_SECTION = "#0F0F0F";
+const STORE_GUIDE_ICONS = [LogIn, Search, ShoppingCart];
 
 // Counter animation hook
 function useCounter(end: number, duration: number = 2000) {
@@ -118,6 +128,7 @@ export default function Home() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showStoreGuide, setShowStoreGuide] = useState(false);
 
   // Meta Pixel helper
   const fbq = (...args: any[]) => {
@@ -145,6 +156,13 @@ export default function Home() {
       content_name: "Egy-Pioneers Wholesale Platform",
       destination: STORE_URL,
     });
+  };
+
+  const openStoreGuide = () => {
+    fbq("trackCustom", "WholesalePlatformGuideOpen", {
+      content_name: "Three Store Onboarding Steps",
+    });
+    setShowStoreGuide(true);
   };
 
   // CompleteRegistration: fire when form succeeds
@@ -371,9 +389,9 @@ export default function Home() {
             <span className="font-bold text-lg text-white">Egy-Pioneers</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden sm:inline-flex gap-2 border text-white hover:bg-white/10" style={{ borderColor: `${ORANGE}80`, backgroundColor: "transparent" }}>
+            <Button asChild variant="outline" className="group hidden sm:inline-flex gap-2 border text-white hover:bg-white/10 transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_22px_rgba(234,138,30,0.28)] active:translate-y-0 active:scale-[0.97]" style={{ borderColor: `${ORANGE}80`, backgroundColor: "transparent" }}>
               <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                <Store className="w-4 h-4" style={{ color: ORANGE }} />
+                <Store className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3" style={{ color: ORANGE }} />
                 منصة المنتجات
               </a>
             </Button>
@@ -441,11 +459,11 @@ export default function Home() {
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
-              <Button asChild size="lg" variant="outline" className="border-white/30 bg-black/20 text-white hover:bg-white/10 text-base px-6 py-6 font-bold">
+              <Button asChild size="lg" variant="outline" className="group border-white/30 bg-black/20 text-white hover:bg-white/10 text-base px-6 py-6 font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853] hover:shadow-[0_0_28px_rgba(212,168,83,0.24)] active:translate-y-0 active:scale-[0.97]">
                 <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                  <Store className="w-5 h-5 ml-2" style={{ color: GOLD }} />
+                  <Store className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3" style={{ color: GOLD }} />
                   شوف منصة المنتجات بالجملة
-                  <ExternalLink className="w-4 h-4 mr-2" />
+                  <ExternalLink className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
                 </a>
               </Button>
             </motion.div>
@@ -1178,13 +1196,19 @@ export default function Home() {
               <p className="text-white/60 text-lg leading-relaxed mb-7">
                 كل المتدربين ليهم مدخل واحد لمنصة Egy-Pioneers: تتصفح المنتجات، تختار المناسب لمشروعك، وتتابع طلباتك من نفس المكان.
               </p>
-              <Button asChild size="lg" className="text-black text-lg px-7 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                  ادخل منصة المنتجات
-                  <ExternalLink className="w-5 h-5 mr-2" />
-                </a>
-              </Button>
-              <p className="text-white/35 text-xs mt-3">هتتفتح في تبويب جديد علشان تفضل الصفحة دي معاك.</p>
+              <div className="flex flex-wrap gap-3 items-center">
+                <Button asChild size="lg" className="group text-black text-lg px-7 py-6 font-bold shadow-xl transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(234,138,30,0.42)] active:translate-y-0 active:scale-[0.97]" style={{ backgroundColor: ORANGE }}>
+                  <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+                    ادخل منصة المنتجات
+                    <ExternalLink className="w-5 h-5 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
+                  </a>
+                </Button>
+                <Button type="button" variant="outline" onClick={openStoreGuide} className="group border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08] font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853]/70 hover:shadow-[0_0_24px_rgba(212,168,83,0.2)] active:translate-y-0 active:scale-[0.97]">
+                  <Sparkles className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110" style={{ color: GOLD }} />
+                  شوف أول 3 خطوات
+                </Button>
+              </div>
+              <p className="text-white/35 text-xs mt-3">هتتفتح المنصة في تبويب جديد علشان تفضل الصفحة دي معاك.</p>
             </div>
 
             <Card className="relative overflow-hidden border p-5 md:p-6" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
@@ -1208,7 +1232,7 @@ export default function Home() {
                     { icon: Package, title: "اعرف السعر", desc: "شوف تفاصيل المنتج وسعره المناسب للتاجر." },
                     { icon: ShoppingCart, title: "تابع شغلك", desc: "راجع طلباتك ومفضلاتك من حسابك." },
                   ].map((item) => (
-                    <div key={item.title} className="flex items-center gap-4 p-3 rounded-xl" style={{ backgroundColor: DARK_CARD }}>
+                    <div key={item.title} className="flex items-center gap-4 p-3 rounded-xl transition-transform duration-200 hover:-translate-x-1" style={{ backgroundColor: DARK_CARD }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${GOLD}14` }}>
                         <item.icon className="w-4 h-4" style={{ color: GOLD }} />
                       </div>
@@ -1317,10 +1341,14 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-4 text-white text-sm">تواصل معانا</h4>
               <div className="space-y-3">
-                <div className="flex items-center gap-3 text-white/60 text-sm">
+                <a href="https://wa.me/15559022738" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
                   <Phone className="w-4 h-4" />
-                  <span dir="ltr">+20 103 730 3001</span>
-                </div>
+                  <span dir="ltr">+1 555 902 2738</span>
+                </a>
+                <a href="https://wa.me/201025073479" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                  <Phone className="w-4 h-4" />
+                  <span dir="ltr">+20 10 25073479</span>
+                </a>
                 <div className="flex items-center gap-3 text-white/60 text-sm">
                   <MessageCircle className="w-4 h-4" />
                   <a href={WHATSAPP_URL} className="hover:text-white transition-colors">واتساب</a>
@@ -1347,6 +1375,54 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <Dialog open={showStoreGuide} onOpenChange={setShowStoreGuide}>
+        <DialogContent className="max-w-xl border text-white" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}45` }}>
+          <DialogHeader className="text-right pr-1">
+            <Badge className="w-fit border" style={{ backgroundColor: `${GOLD}15`, color: GOLD, borderColor: `${GOLD}35` }}>
+              <Sparkles className="w-4 h-4 ml-1" />
+              خريطة البداية السريعة
+            </Badge>
+            <DialogTitle className="text-2xl font-black text-white leading-tight">أول 3 خطوات قبل ما تعمل طلبك</DialogTitle>
+            <DialogDescription className="text-white/55 leading-relaxed">اعتبرها زي ما تدخل معرض كبير: الأول تسجل اسمك، بعدها تلف وتشوف البضاعة، وفي الآخر تراجع اختيارك قبل ما تدفع.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 mt-1">
+            {STORE_ONBOARDING_STEPS.map((step, index) => {
+              const StepIcon = STORE_GUIDE_ICONS[index] ?? CheckCircle;
+
+              return (
+                <motion.div
+                  key={step.number}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.08, duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+                  className="flex gap-4 rounded-xl border p-4"
+                  style={{ backgroundColor: DARK_CARD, borderColor: "rgba(255,255,255,0.08)" }}
+                >
+                  <div className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: `${ORANGE}18`, color: ORANGE }}>
+                    {step.number}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <StepIcon className="w-4 h-4" style={{ color: GOLD }} />
+                      <h3 className="font-bold text-white">{step.title}</h3>
+                    </div>
+                    <p className="text-white/55 text-sm leading-relaxed">{step.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <Button asChild size="lg" className="group w-full text-black font-bold transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-1 hover:shadow-[0_0_28px_rgba(234,138,30,0.4)] active:translate-y-0 active:scale-[0.97]" style={{ backgroundColor: ORANGE }}>
+            <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+              افتح المنصة وطبّق الخطوات
+              <ExternalLink className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
+            </a>
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Sticky WhatsApp Button */}
       <a
