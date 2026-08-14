@@ -64,6 +64,7 @@ const GOLD = "#D4A853";
 const DARK = "#0A0A0A";
 const DARK_CARD = "#141414";
 const DARK_SECTION = "#0F0F0F";
+const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;
 const STORE_GUIDE_ICONS = [LogIn, Search, ShoppingCart];
 
 // Counter animation hook
@@ -363,7 +364,7 @@ export default function Home() {
       if (submission.automationDelivered) {
         window.setTimeout(() => {
           window.location.assign(getCampaignWhatsAppUrl(formData.name.split(" ")[0]));
-        }, 700);
+        }, POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS);
       }
     } catch {
       setFormState("error");

@@ -21,3 +21,5 @@
 ## تحديث Test Events — دليل أحداث المتصفح
 
 أظهرت لقطة Test Events الخاصة بالـacademy pixel في `15 أغسطس` أحداثاً مستلمة ومُعالجة من المتصفح ضمن جلسة تشمل `egypioneers-836duxqk.manus.space`، وهي: `PageView` و`View content` عند `01:18:57`، ثم `Contact` و`CampaignWhatsAppHandoff` عند `01:19:57`. كما ظهر حدث تلقائي `SubscribedButtonClick`. هذا يثبت عمل Pixel المتصفح وتتبّع تفاعل التسجيل وتحويله إلى واتساب. لا يظهر في الجزء المعروض من الجلسة صف `Lead` خادمي أو حالة deduplication؛ لذلك لا نعد هذا الجزء مكتمل الإثبات بعد.
+
+تزامن أحدث تنفيذ في n8n `#19785` مع وقت `01:19:58` وبحالة `Succeeded` خلال `5.408s`، أي مباشرة بعد أحداث Contact وCampaignWhatsAppHandoff المرصودة. كما أظهر مخطط التنفيذ عقدة `Meta CAPI - Lead Feedback (HOT+WARM)` متجهة إلى Pixel الأكاديمية مع عنصر معالجة ظاهر. يثبت هذا التزامن تسليم التسجيل الحي إلى Workflow، لكنه لا يغني عن فحص `event_source_url` وحالة deduplication من تفاصيل Meta نفسها.

@@ -21,4 +21,21 @@ describe("قياس حملة FunnelFast داخل صفحة Manus", () => {
     expect(FUNNELFAST_PIXEL_EVENTS.viewContent).toBe("ViewContent");
     expect(FUNNELFAST_PIXEL_EVENTS.lead).toBe("Lead");
   });
+
+  it("يرسل أحداث التسجيل القياسية قبل تأخير التحويل التلقائي إلى واتساب", () => {
+    const home = readFileSync(homePath, "utf8");
+    const completeRegistrationIndex = home.indexOf('fbq("track", "CompleteRegistration"');
+    const leadIndex = home.indexOf("FUNNELFAST_PIXEL_EVENTS.lead");
+    const contactIndex = home.indexOf("FUNNELFAST_PIXEL_EVENTS.contact", leadIndex);
+    const handoffIndex = home.indexOf("FUNNELFAST_PIXEL_EVENTS.whatsappHandoff", contactIndex);
+    const redirectIndex = home.indexOf("window.location.assign", handoffIndex);
+
+    expect(completeRegistrationIndex).toBeGreaterThan(-1);
+    expect(leadIndex).toBeGreaterThan(completeRegistrationIndex);
+    expect(contactIndex).toBeGreaterThan(leadIndex);
+    expect(handoffIndex).toBeGreaterThan(contactIndex);
+    expect(redirectIndex).toBeGreaterThan(handoffIndex);
+    expect(home).toContain("const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;");
+    expect(home).toContain("}, POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS);");
+  });
 });
