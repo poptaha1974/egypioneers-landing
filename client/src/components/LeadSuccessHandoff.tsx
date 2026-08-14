@@ -6,6 +6,7 @@ type LeadSuccessHandoffProps = {
   phone: string;
   whatsappUrl: string | null;
   onWhatsAppClick: () => void;
+  automationDelivered: boolean | null;
 };
 
 export function LeadSuccessHandoff({
@@ -13,6 +14,7 @@ export function LeadSuccessHandoff({
   phone,
   whatsappUrl,
   onWhatsAppClick,
+  automationDelivered,
 }: LeadSuccessHandoffProps) {
   return (
     <>
@@ -29,6 +31,11 @@ export function LeadSuccessHandoff({
           <span className="text-white/50 text-xs">رسالتك الجاهزة هتظهر تلقائياً في المحادثة.</span>
         </p>
       </div>
+      {automationDelivered === false && (
+        <p className="text-amber-300/90 text-sm mb-5 leading-relaxed">
+          تسجيلك محفوظ عندنا. افتح واتساب دلوقتي علشان تضمن وصول تفاصيل الويبنار للفريق مباشرة.
+        </p>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <PostSubmitWhatsAppAction whatsappUrl={whatsappUrl} onWhatsAppClick={onWhatsAppClick} />
       </div>

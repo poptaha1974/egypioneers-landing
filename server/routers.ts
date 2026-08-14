@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { createLead, getAllLeads, getLeadsByStatus } from "./db";
+import { deliverAcademyLead } from "./academyLeadDelivery";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -64,7 +65,12 @@ export const appRouter = router({
           readiness: input.readiness || null,
           preference: input.preference || null,
         });
-        return result;
+        const automationDelivered = await deliverAcademyLead({
+          name: input.name,
+          phone: input.phone,
+          email: input.email,
+        });
+        return { ...result, automationDelivered };
       }),
 
     // Admin-only: Admin فقط يشوف الـ leads

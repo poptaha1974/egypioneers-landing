@@ -12,4 +12,12 @@ describe("تهيئة Meta Pixel", () => {
     expect(html).toContain("fbq('init', '1604627917208516')");
     expect(html).toContain("fbq('track', 'PageView')");
   });
+
+  it("لا تعرض بيانات تقييم أو مراجعات غير موثقة داخل البيانات المنظمة", () => {
+    const html = readFileSync(htmlPath, "utf8");
+
+    expect(html).not.toContain('"@type": "AggregateRating"');
+    expect(html).not.toContain('"ratingCount"');
+    expect(html).not.toContain('"ratingValue"');
+  });
 });

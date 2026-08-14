@@ -1,6 +1,8 @@
+import { ACADEMY_CAMPAIGN_WHATSAPP_PHONE } from "./campaignDelivery";
+
 export type LeadSubmissionState = "idle" | "submitting" | "success" | "error";
 
-export const CAMPAIGN_WHATSAPP_PHONE = "201037303001";
+export const CAMPAIGN_WHATSAPP_PHONE = ACADEMY_CAMPAIGN_WHATSAPP_PHONE;
 export const WHATSAPP_URL = getCampaignWhatsAppUrl();
 
 export function getCampaignWhatsAppUrl(firstName?: string) {

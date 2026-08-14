@@ -58,8 +58,6 @@ import {
 // PURPOSE: صفحة فرز وتأهيل + إثبات ثقة (مش صفحة تعريف)
 // ======================================================
 
-const WEBHOOK_URL = "https://allhomz.app.n8n.cloud/webhook/egy-pioneers-lead";
-
 // Brand Colors
 const ORANGE = "#EA8A1E";
 const GOLD = "#D4A853";
@@ -126,6 +124,7 @@ export default function Home() {
     preference: "",
   });
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [automationDelivered, setAutomationDelivered] = useState<boolean | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showAllErrors, setShowAllErrors] = useState(false);
@@ -341,24 +340,13 @@ export default function Home() {
     }
 
     try {
-      // 1. حفظ في الـ Database عبر tRPC
-      await submitMutation.mutateAsync({
+      // 1. حفظ في الـDatabase وتسليم التسجيل لخدمة الأتمتة من الخادم.
+      const submission = await submitMutation.mutateAsync({
         name: formData.name,
         phone: normalizedPhone,
         email: formData.email,
       });
-
-      // 2. إرسال للـ webhook (n8n) بشكل متوازي — لو فشل مش مشكلة
-      fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: normalizedPhone,
-          email: formData.email,
-        }),
-      }).catch(() => {}); // silent fail for webhook
-
+      setAutomationDelivered(submission.automationDelivered);
       clearSavedData();
       fbq("track", "CompleteRegistration", {
         content_name: "EgyPioneers Wednesday Webinar Registration",
@@ -372,9 +360,11 @@ export default function Home() {
       fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "Campaign WhatsApp Handoff" });
       fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.whatsappHandoff, { content_name: "Campaign WhatsApp Handoff" });
       setFormState("success");
-      window.setTimeout(() => {
-        window.location.assign(getCampaignWhatsAppUrl(formData.name.split(" ")[0]));
-      }, 700);
+      if (submission.automationDelivered) {
+        window.setTimeout(() => {
+          window.location.assign(getCampaignWhatsAppUrl(formData.name.split(" ")[0]));
+        }, 700);
+      }
     } catch {
       setFormState("error");
     }
@@ -880,12 +870,13 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <LeadSuccessHandoff
-                      firstName={formData.name ? formData.name.split(" ")[0] : ""}
-                      phone={formData.phone}
-                      whatsappUrl={postSubmitWhatsAppUrl}
-                      onWhatsAppClick={handleWhatsAppClick}
-                    />
+                <LeadSuccessHandoff
+                  firstName={formData.name.split(" ")[0] || "صاحبنا"}
+                  phone={formData.phone}
+                  whatsappUrl={postSubmitWhatsAppUrl}
+                  onWhatsAppClick={handleWhatsAppClick}
+                  automationDelivered={automationDelivered}
+                />
                   </motion.div>
 
                   <motion.div

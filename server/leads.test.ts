@@ -12,6 +12,10 @@ vi.mock("./db", () => ({
   getUserByOpenId: vi.fn(),
 }));
 
+vi.mock("./academyLeadDelivery", () => ({
+  deliverAcademyLead: vi.fn().mockResolvedValue(true),
+}));
+
 // Create a caller with mock context (public, no auth)
 function createPublicCaller() {
   return appRouter.createCaller({
@@ -29,6 +33,7 @@ describe("Leads tRPC Router - Integration Tests", () => {
   describe("leads.submit - valid input", () => {
     it("should call createLead with normalized payload and return result", async () => {
       const { createLead } = await import("./db");
+      const { deliverAcademyLead } = await import("./academyLeadDelivery");
       const caller = createPublicCaller();
 
       const result = await caller.leads.submit({
@@ -53,7 +58,12 @@ describe("Leads tRPC Router - Integration Tests", () => {
         preference: "أونلاين",
       });
 
-      expect(result).toEqual({ id: 1, intentScore: 75, leadStatus: "HOT" });
+      expect(deliverAcademyLead).toHaveBeenCalledWith({
+        name: "أحمد محمد",
+        phone: "01012345678",
+        email: "ahmed@test.com",
+      });
+      expect(result).toEqual({ id: 1, intentScore: 75, leadStatus: "HOT", automationDelivered: true });
     });
 
     it("should handle optional fields as null when undefined", async () => {
@@ -76,6 +86,20 @@ describe("Leads tRPC Router - Integration Tests", () => {
         readiness: null,
         preference: null,
       });
+    });
+
+    it("keeps the registration successful when automation delivery reports a failure", async () => {
+      const { deliverAcademyLead } = await import("./academyLeadDelivery");
+      (deliverAcademyLead as any).mockResolvedValueOnce(false);
+      const caller = createPublicCaller();
+
+      const result = await caller.leads.submit({
+        name: "منى",
+        phone: "01012345678",
+        email: "mona@example.com",
+      });
+
+      expect(result).toMatchObject({ id: 1, automationDelivered: false });
     });
   });
 
