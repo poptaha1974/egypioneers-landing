@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -55,8 +56,6 @@ import {
 // ======================================================
 
 const WEBHOOK_URL = "https://allhomz.app.n8n.cloud/webhook/egy-pioneers-lead";
-
-const WHATSAPP_URL = "https://wa.me/15559022738?text=%D8%A3%D9%86%D8%A7%20%D8%B3%D8%AC%D9%84%D8%AA%20%D9%81%D9%8A%20%D9%86%D9%85%D9%88%D8%B0%D8%AC%20Egy-Pioneers%20%D9%88%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%A3%D9%86%D8%B3%D8%A8%20%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9%20%D9%84%D9%8A%D8%A7";
 
 // Brand Colors
 const ORANGE = "#EA8A1E";
@@ -177,6 +176,7 @@ export default function Home() {
   };
 
   const storeProgress = getStoreProgressState(completedStoreSteps);
+  const postSubmitWhatsAppUrl = getPostSubmitWhatsAppUrl(formState);
 
   // CompleteRegistration: fire when form succeeds
   const hasTrackedComplete = useRef(false);
@@ -918,12 +918,14 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
-                      <Button size="lg" className="text-white text-lg px-6 py-5 font-bold shadow-xl w-full" style={{ backgroundColor: "#25D366" }}>
-                        <MessageCircle className="w-5 h-5 ml-2" />
-                        كلمنا على واتساب
-                      </Button>
-                    </a>
+                    {postSubmitWhatsAppUrl && (
+                      <a href={postSubmitWhatsAppUrl} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
+                        <Button size="lg" className="text-white text-lg px-6 py-5 font-bold shadow-xl w-full" style={{ backgroundColor: "#25D366" }}>
+                          <MessageCircle className="w-5 h-5 ml-2" />
+                          كلمنا على واتساب
+                        </Button>
+                      </a>
+                    )}
                     <Button
                       size="lg"
                       onClick={generatePDF}
