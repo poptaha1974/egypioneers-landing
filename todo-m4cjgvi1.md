@@ -110,14 +110,14 @@
 - [x] إضافة اختبارات تغطي غياب AggregateRating ووجهة واتساب وتسليم التسجيل المعتمد.
 - [x] تنفيذ Test Events للدومين egypioneers-836duxqk.manus.space وتوثيق مصدر PageView وViewContent من الرابط المنشور.
 - [x] توثيق PageView وViewContent وContact وCampaignWhatsAppHandoff من متصفح الدومين المنشور في Test Events.
-- [ ] توثيق وصول Lead خادمي ضمن Test Events أو إثبات سبب عدم ظهوره عندما لا يتضمن payload رمز جلسة الاختبار.
-- [ ] تحليل سبب عدم ظهور Lead وCompleteRegistration القياسيين ضمن جلسة Test Events رغم ظهور Contact وCampaignWhatsAppHandoff.
+- [x] توثيق Lead في Test Events بحالة Deduplicated مع استكمال CompleteRegistration وContact من الدومين المنشور.
+- [x] تحليل سبب عدم ظهور Lead وCompleteRegistration القياسيين؛ أثبتت جلسة جديدة بعد مهلة التحويل ظهورهما بنجاح.
 - [x] إضافة اختبار يثبت تسلسل واستدعاء Lead وCompleteRegistration بعد نجاح التسجيل قبل التفكير في أي تعديل إنتاجي.
 - [x] رفع مهلة التحويل التلقائي إلى واتساب بعد إرسال أحداث التسجيل القياسية لضمان فرصة تسليمها.
 - [x] توسيع اختبار القياس للتحقق من ترتيب CompleteRegistration ثم Lead ثم Contact ثم CampaignWhatsAppHandoff.
-- [ ] إعادة Test Events بعد النشر للتأكد من ظهور Lead وCompleteRegistration من الدومين المنشور.
+- [x] إعادة Test Events بعد النشر وتأكيد ظهور Lead (Deduplicated) وCompleteRegistration (Processed) من الدومين المنشور.
 - [x] التحقق قراءةً فقط من وجود عقدة Meta CAPI في Workflow الأكاديمية وتنفيذ حديث ناجح يعالج عنصراً واحداً.
-- [ ] توثيق مصدر حدث Lead الخادمي الحالي أو تعذر إثباته دون تعديل CAPI أو إنشاء CAPI جديد.
+- [x] توثيق مصدر Lead الخادمي من عقدة Meta CAPI في Workflow الأكاديمية وظهور deduplication لحدث Lead في Test Events.
 - [x] التحقق من عدم الحاجة لتمرير رمز Test Events في كود Pixel؛ الاختبار الرسمي لأحداث المتصفح يبدأ من اختيار Website ثم فتح الرابط داخل Events Manager.
 - [x] التحقق من عدم الحاجة لاختبارات حقن رمز Test Events في الواجهة لأن هذا المسار يخص اختبار أحداث المتصفح من Events Manager لا تعديل خواص الحدث.
 - [x] حفظ checkpoint منشور بعد نجاح الاختبارات والتحقق البصري.
