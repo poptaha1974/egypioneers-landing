@@ -12,7 +12,7 @@ describe("تسليم العميل إلى واتساب بعد نجاح النمو
     expect(getPostSubmitWhatsAppUrl("submitting")).toBeNull();
     expect(getPostSubmitWhatsAppUrl("error")).toBeNull();
     expect(WHATSAPP_URL).toMatch(new RegExp(`^https://wa\\.me/${CAMPAIGN_WHATSAPP_PHONE}\\?text=`));
-    expect(decodeURIComponent(getCampaignWhatsAppUrl("إيهاب"))).toContain("أنا إيهاب سجلت في محاضرة Egy-Pioneers المجانية");
+    expect(decodeURIComponent(getCampaignWhatsAppUrl("إيهاب"))).toContain("أنا إيهاب سجلت في ويبنار Egy-Pioneers الأسبوعي يوم الأربعاء");
   });
 
   it("يعرض زر واتساب فعلياً في واجهة النجاح دون الحاجة لإرسال نموذج حقيقي", () => {

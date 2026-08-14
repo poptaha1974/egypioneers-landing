@@ -11,6 +11,18 @@ export const FUNNELFAST_PIXEL_EVENTS = {
 
 export type CampaignRegistration = Record<(typeof CAMPAIGN_FORM_FIELDS)[number], string>;
 
+export function normalizeEgyptianWhatsApp(value: string) {
+  const compact = value.replace(/[\s-]/g, "");
+  if (/^01[0125]\d{8}$/.test(compact)) return `20${compact.slice(1)}`;
+  if (/^20?1[0125]\d{8}$/.test(compact)) return compact.startsWith("20") ? compact : `20${compact}`;
+  if (/^\+201[0125]\d{8}$/.test(compact)) return compact.slice(1);
+  return null;
+}
+
+export function isEgyptianWhatsAppFormatValid(value: string) {
+  return Boolean(normalizeEgyptianWhatsApp(value));
+}
+
 export function getCampaignRegistrationErrors(data: CampaignRegistration) {
   const normalizedPhone = data.phone.replace(/\s|-/g, "");
 
@@ -22,8 +34,8 @@ export function getCampaignRegistrationErrors(data: CampaignRegistration) {
         : "",
     phone: !normalizedPhone
       ? "اكتب رقم واتساب علشان نقدر نكمل معاك"
-      : !/^(\+?20|0)?1[0-9]{9}$/.test(normalizedPhone)
-        ? "رقم الواتساب مش صح — اكتبه بصيغة 01xxxxxxxxx"
+      : !isEgyptianWhatsAppFormatValid(normalizedPhone)
+        ? "رقم الواتساب غير صحيح — استخدم رقم مصري يبدأ بـ 010 أو 011 أو 012 أو 015"
         : "",
     email: !data.email.trim()
       ? "اكتب الإيميل بتاعك"

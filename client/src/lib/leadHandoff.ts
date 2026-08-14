@@ -5,7 +5,7 @@ export const WHATSAPP_URL = getCampaignWhatsAppUrl();
 
 export function getCampaignWhatsAppUrl(firstName?: string) {
   const nameIntro = firstName?.trim() ? `أنا ${firstName.trim()} ` : "أنا ";
-  const text = `${nameIntro}سجلت في محاضرة Egy-Pioneers المجانية وعايز أكمل الخطوة الجاية.`;
+  const text = `${nameIntro}سجلت في ويبنار Egy-Pioneers الأسبوعي يوم الأربعاء وعايز أعرف تفاصيل الدخول.`;
 
   return `https://wa.me/${CAMPAIGN_WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
 }

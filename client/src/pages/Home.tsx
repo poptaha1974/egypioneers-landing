@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getCampaignWhatsAppUrl, getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
-import { FUNNELFAST_PIXEL_EVENTS, getCampaignRegistrationErrors } from "@/lib/campaignRegistration";
+import { FUNNELFAST_PIXEL_EVENTS, getCampaignRegistrationErrors, isEgyptianWhatsAppFormatValid, normalizeEgyptianWhatsApp } from "@/lib/campaignRegistration";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
 import { LeadSuccessHandoff } from "@/components/LeadSuccessHandoff";
 import { PostSubmitWhatsAppAction } from "@/components/PostSubmitWhatsAppAction";
+import { WebinarCountdown } from "@/components/WebinarCountdown";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,8 +143,8 @@ export default function Home() {
   const handleFormInteraction = () => {
     if (!hasTrackedViewContent.current) {
       hasTrackedViewContent.current = true;
-      fbq("track", FUNNELFAST_PIXEL_EVENTS.viewContent, { content_name: "EgyPioneers Free Event Registration" });
-      fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.formOpened, { content_name: "EgyPioneers Free Event Registration" });
+      fbq("track", FUNNELFAST_PIXEL_EVENTS.viewContent, { content_name: "EgyPioneers Wednesday Webinar Registration" });
+      fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.formOpened, { content_name: "EgyPioneers Wednesday Webinar Registration" });
     }
   };
 
@@ -294,6 +295,9 @@ export default function Home() {
     return ALL_FIELDS.every((f) => !getFieldError(f));
   };
 
+  const phoneHasValue = Boolean(formData.phone.trim());
+  const isPhoneFormatValid = isEgyptianWhatsAppFormatValid(formData.phone);
+
   // Progress bar calculation
   const completedFields = ALL_FIELDS.filter((f) => !getFieldError(f)).length;
   const progressPercent = Math.round((completedFields / ALL_FIELDS.length) * 100);
@@ -326,12 +330,20 @@ export default function Home() {
 
   const confirmAndSubmit = async () => {
     setFormState("submitting");
+    const normalizedPhone = normalizeEgyptianWhatsApp(formData.phone);
+
+    if (!normalizedPhone) {
+      setFormState("idle");
+      setTouched((current) => ({ ...current, phone: true }));
+      setShowAllErrors(true);
+      return;
+    }
 
     try {
       // 1. حفظ في الـ Database عبر tRPC
       await submitMutation.mutateAsync({
         name: formData.name,
-        phone: formData.phone,
+        phone: normalizedPhone,
         email: formData.email,
       });
 
@@ -341,19 +353,19 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
-          phone: formData.phone,
+          phone: normalizedPhone,
           email: formData.email,
         }),
       }).catch(() => {}); // silent fail for webhook
 
       clearSavedData();
       fbq("track", "CompleteRegistration", {
-        content_name: "EgyPioneers Free Event Registration",
+        content_name: "EgyPioneers Wednesday Webinar Registration",
         status: true,
       });
       // Fire Meta Pixel Lead event
       fbq("track", FUNNELFAST_PIXEL_EVENTS.lead, {
-        content_name: "EgyPioneers Free Event Registration",
+        content_name: "EgyPioneers Wednesday Webinar Registration",
         content_category: "FunnelFast-Compatible Registration",
       });
       fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "Campaign WhatsApp Handoff" });
@@ -410,7 +422,7 @@ export default function Home() {
             >
               <Badge className="mb-6 text-sm px-4 py-1.5 border" style={{ backgroundColor: `${ORANGE}20`, color: ORANGE, borderColor: `${ORANGE}40` }}>
                 <Award className="w-4 h-4 ml-1" />
-                محاضرة مجانية تطبيقية — الأماكن محدودة
+                ويبنار أسبوعي كل أربعاء — الأماكن محدودة
               </Badge>
             </motion.div>
             <motion.h1
@@ -431,7 +443,7 @@ export default function Home() {
             >
               مش مجرد كلام نظري: هتفهم اختيار المنتج، قراءة العميل، وبناء إعلان عملي خطوة بخطوة.
               <br />
-              <strong className="text-white/90">التسجيل مجاني — وبعده هتدخل واتساب مباشرة علشان تكمل مع الفريق.</strong>
+              <strong className="text-white/90">كل أربعاء من 6 لـ9 مساءً — أول 30 دقيقة ويبنار مفتوح، وبعدها الورشة لأعضاء نادي تجار العرب.</strong>
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -441,7 +453,7 @@ export default function Home() {
             >
               <a href="#form-section" onClick={handleCampaignCtaClick}>
                 <Button size="lg" className="text-black text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                  احجز مكانك في المحاضرة المجانية
+                  احجز مكانك في الويبنار الأسبوعي
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
@@ -472,12 +484,14 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
-                احجز مكانك في المحاضرة المجانية
+                احجز مكانك في الويبنار الأسبوعي
               </h2>
               <p className="text-white/50">
-                اكتب الاسم وواتساب والإيميل — وهتنقل مباشرة لمحادثة الفريق علشان تكمل خطوتك الجاية.
+                اكتب الاسم وواتساب والإيميل — وهتنقل مباشرة لمحادثة الفريق علشان توصلك تفاصيل الويبنار.
               </p>
             </div>
+
+            <WebinarCountdown />
 
             {formState === "idle" || formState === "submitting" || formState === "error" ? (
               <Card className="p-6 md:p-8 shadow-2xl border" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}25` }}>
@@ -531,17 +545,26 @@ export default function Home() {
                         type="tel"
                         dir="ltr"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, phone: e.target.value });
+                          setTouched((current) => ({ ...current, phone: true }));
+                        }}
                         onBlur={() => markTouched("phone")}
-                        className={`w-full px-4 pl-10 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("phone") ? "border-red-500/70" : ""}`}
-                        style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("phone") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
+                        className={`w-full px-4 pl-10 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${phoneHasValue && !isPhoneFormatValid ? "border-red-500/70" : phoneHasValue ? "border-emerald-500/70" : ""}`}
+                        style={{ backgroundColor: DARK_CARD, borderColor: phoneHasValue && !isPhoneFormatValid ? "#EF4444" : phoneHasValue ? "#10B981" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
                         placeholder="01xxxxxxxxx"
                       />
                     </div>
-                    {shouldShowError("phone") && (
+                    {phoneHasValue && !isPhoneFormatValid && (
                       <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
                         <AlertCircle className="w-3 h-3" />
                         {getFieldError("phone")}
+                      </p>
+                    )}
+                    {phoneHasValue && isPhoneFormatValid && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#6EE7B7" }}>
+                        <CheckCircle className="w-3 h-3" />
+                        صيغة رقم واتساب المصري صحيحة — هنفتح المحادثة بعد التسجيل.
                       </p>
                     )}
                   </div>
