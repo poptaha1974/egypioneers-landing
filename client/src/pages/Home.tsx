@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
+import { getCampaignWhatsAppUrl, getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
+import { FUNNELFAST_PIXEL_EVENTS, getCampaignRegistrationErrors } from "@/lib/campaignRegistration";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
 import { LeadSuccessHandoff } from "@/components/LeadSuccessHandoff";
 import { PostSubmitWhatsAppAction } from "@/components/PostSubmitWhatsAppAction";
@@ -15,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
   Package,
   TrendingUp,
@@ -40,8 +41,6 @@ import {
   Download,
   FileText,
   Home as HomeIcon,
-  X,
-  Eye,
   ExternalLink,
   Search,
   ShoppingCart,
@@ -128,7 +127,6 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showAllErrors, setShowAllErrors] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showStoreGuide, setShowStoreGuide] = useState(false);
   const [completedStoreSteps, setCompletedStoreSteps] = useState(0);
 
@@ -144,13 +142,20 @@ export default function Home() {
   const handleFormInteraction = () => {
     if (!hasTrackedViewContent.current) {
       hasTrackedViewContent.current = true;
-      fbq("track", "ViewContent", { content_name: "EgyPioneers Lead Form" });
+      fbq("track", FUNNELFAST_PIXEL_EVENTS.viewContent, { content_name: "EgyPioneers Free Event Registration" });
+      fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.formOpened, { content_name: "EgyPioneers Free Event Registration" });
     }
+  };
+
+  const handleCampaignCtaClick = () => {
+    handleFormInteraction();
   };
 
   // Schedule: fire on WhatsApp click
   const handleWhatsAppClick = () => {
     fbq("track", "Schedule", { content_name: "WhatsApp Contact" });
+    fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "EgyPioneers WhatsApp Handoff" });
+    fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.whatsappHandoff, { content_name: "EgyPioneers WhatsApp Handoff" });
   };
 
   const handleStoreClick = () => {
@@ -178,19 +183,9 @@ export default function Home() {
   };
 
   const storeProgress = getStoreProgressState(completedStoreSteps);
-  const postSubmitWhatsAppUrl = getPostSubmitWhatsAppUrl(formState);
-
-  // CompleteRegistration: fire when form succeeds
-  const hasTrackedComplete = useRef(false);
-  useEffect(() => {
-    if (formState === "success" && !hasTrackedComplete.current) {
-      hasTrackedComplete.current = true;
-      fbq("track", "CompleteRegistration", {
-        content_name: "EgyPioneers Qualification Complete",
-        status: true,
-      });
-    }
-  }, [formState]);
+  const postSubmitWhatsAppUrl = formState === "success"
+    ? getCampaignWhatsAppUrl(formData.name.split(" ")[0])
+    : getPostSubmitWhatsAppUrl(formState);
 
   // Local Storage: حفظ البيانات تلقائياً
   const STORAGE_KEY = "egypioneers_form_data";
@@ -265,19 +260,13 @@ export default function Home() {
 
   // Real-time validation
   const getFieldError = (field: string): string => {
+    const campaignErrors = getCampaignRegistrationErrors(formData);
+
+    if (field === "name" || field === "phone" || field === "email") {
+      return campaignErrors[field];
+    }
+
     switch (field) {
-      case "name":
-        if (!formData.name.trim()) return "اكتب اسمك علشان نعرف نكلمك";
-        if (formData.name.trim().length < 2) return "الاسم لازم يكون حرفين على الأقل";
-        return "";
-      case "phone":
-        if (!formData.phone.trim()) return "اكتب رقم موبايلك علشان نقدر نتواصل معاك";
-        if (!/^(\+?20|0)?1[0-9]{9}$/.test(formData.phone.replace(/\s|-/g, ""))) return "رقم الموبايل مش صح — لازم يبدأ ب 01 ويكون 11 رقم";
-        return "";
-      case "email":
-        if (!formData.email.trim()) return "اكتب الإيميل بتاعك";
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) return "الإيميل مش صح — تأكد من الصيغة";
-        return "";
       case "role":
         if (!formData.role) return "اختار أنت حالياً إيه";
         return "";
@@ -299,7 +288,7 @@ export default function Home() {
     }
   };
 
-  const ALL_FIELDS = ["name", "phone", "email", "role", "stage", "readiness", "preference", "challenge"];
+  const ALL_FIELDS = ["name", "phone", "email"];
 
   const isFormValid = (): boolean => {
     return ALL_FIELDS.every((f) => !getFieldError(f));
@@ -330,14 +319,12 @@ export default function Home() {
       return;
     }
 
-    // Show confirmation modal
-    setShowConfirmModal(true);
+    void confirmAndSubmit();
   };
 
   const submitMutation = trpc.leads.submit.useMutation();
 
   const confirmAndSubmit = async () => {
-    setShowConfirmModal(false);
     setFormState("submitting");
 
     try {
@@ -346,11 +333,6 @@ export default function Home() {
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
-        role: formData.role || undefined,
-        challenge: formData.challenge || undefined,
-        stage: formData.stage || undefined,
-        readiness: formData.readiness || undefined,
-        preference: formData.preference || undefined,
       });
 
       // 2. إرسال للـ webhook (n8n) بشكل متوازي — لو فشل مش مشكلة
@@ -361,30 +343,25 @@ export default function Home() {
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
-          role: formData.role,
-          challenge: formData.challenge,
-          stage: formData.stage,
-          readiness: formData.readiness,
-          preference: formData.preference,
         }),
       }).catch(() => {}); // silent fail for webhook
 
-      setFormState("success");
       clearSavedData();
-      // Fire Meta Pixel Lead event
-      fbq("track", "Lead", {
-        content_name: "EgyPioneers Qualification Form",
-        role: formData.role,
-        stage: formData.stage,
-        readiness: formData.readiness,
+      fbq("track", "CompleteRegistration", {
+        content_name: "EgyPioneers Free Event Registration",
+        status: true,
       });
-      // Auto-reset form after 10 seconds
-      setTimeout(() => {
-        setFormState("idle");
-        setFormData({ name: "", phone: "", email: "", role: "", challenge: "", stage: "", readiness: "", preference: "" });
-        setTouched({});
-        setShowAllErrors(false);
-      }, 10000);
+      // Fire Meta Pixel Lead event
+      fbq("track", FUNNELFAST_PIXEL_EVENTS.lead, {
+        content_name: "EgyPioneers Free Event Registration",
+        content_category: "FunnelFast-Compatible Registration",
+      });
+      fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "Campaign WhatsApp Handoff" });
+      fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.whatsappHandoff, { content_name: "Campaign WhatsApp Handoff" });
+      setFormState("success");
+      window.setTimeout(() => {
+        window.location.assign(getCampaignWhatsAppUrl(formData.name.split(" ")[0]));
+      }, 700);
     } catch {
       setFormState("error");
     }
@@ -404,16 +381,10 @@ export default function Home() {
             <span className="font-bold text-lg text-white">Egy-Pioneers</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="group hidden sm:inline-flex gap-2 border text-white hover:bg-white/10 transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_22px_rgba(234,138,30,0.28)] active:translate-y-0 active:scale-[0.97]" style={{ borderColor: `${ORANGE}80`, backgroundColor: "transparent" }}>
-              <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                <Store className="w-4 h-4 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3" style={{ color: ORANGE }} />
-                منصة المنتجات
-              </a>
-            </Button>
-            <a href="#form-section">
+            <a href="#form-section" onClick={handleCampaignCtaClick}>
               <Button className="text-black gap-2 font-semibold shadow-lg" style={{ backgroundColor: ORANGE }}>
                 <Zap className="w-4 h-4" />
-                ابدأ دلوقتي
+                احجز مكانك
               </Button>
             </a>
           </div>
@@ -439,7 +410,7 @@ export default function Home() {
             >
               <Badge className="mb-6 text-sm px-4 py-1.5 border" style={{ backgroundColor: `${ORANGE}20`, color: ORANGE, borderColor: `${ORANGE}40` }}>
                 <Award className="w-4 h-4 ml-1" />
-                مسار عملي — مش كورس نظري
+                محاضرة مجانية تطبيقية — الأماكن محدودة
               </Badge>
             </motion.div>
             <motion.h1
@@ -448,9 +419,9 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
               className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-6"
             >
-              عايز تبدأ مشروعك
+              نفسك تبدأ تجارة إلكترونية
               <br />
-              بس مش عارف <span style={{ color: ORANGE }}>تبدأ منين؟</span>
+              بس <span style={{ color: ORANGE }}>تايه وخايف تخسر؟</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -458,9 +429,9 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
               className="text-xl text-white/70 mb-8 leading-relaxed"
             >
-              هنا بنديك منتج حقيقي + مخزون جاهز + حملة إعلانية عملية + فريق دعم كامل.
+              مش مجرد كلام نظري: هتفهم اختيار المنتج، قراءة العميل، وبناء إعلان عملي خطوة بخطوة.
               <br />
-              <strong className="text-white/90">النتيجة؟ أول بيعة حقيقية خلال 30 يوم.</strong>
+              <strong className="text-white/90">التسجيل مجاني — وبعده هتدخل واتساب مباشرة علشان تكمل مع الفريق.</strong>
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -468,19 +439,12 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-wrap gap-4"
             >
-              <a href="#form-section">
+              <a href="#form-section" onClick={handleCampaignCtaClick}>
                 <Button size="lg" className="text-black text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                  ابعت بياناتك وخد الخطوة اللي بعديها
+                  احجز مكانك في المحاضرة المجانية
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
-              <Button asChild size="lg" variant="outline" className="group border-white/30 bg-black/20 text-white hover:bg-white/10 text-base px-6 py-6 font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853] hover:shadow-[0_0_28px_rgba(212,168,83,0.24)] active:translate-y-0 active:scale-[0.97]">
-                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                  <Store className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3" style={{ color: GOLD }} />
-                  شوف منصة المنتجات بالجملة
-                  <ExternalLink className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
-                </a>
-              </Button>
             </motion.div>
             {/* Micro social proof */}
             <motion.div
@@ -508,10 +472,10 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
-                خلّينا نشوف أنسب خطوة ليك
+                احجز مكانك في المحاضرة المجانية
               </h2>
               <p className="text-white/50">
-                كام سؤال سريع — وهنرد عليك بخطة عملية مخصصة ليك
+                اكتب الاسم وواتساب والإيميل — وهتنقل مباشرة لمحادثة الفريق علشان تكمل خطوتك الجاية.
               </p>
             </div>
 
@@ -540,7 +504,7 @@ export default function Home() {
                 <form onSubmit={handleSubmit} className="space-y-5" onFocusCapture={handleFormInteraction} onClickCapture={handleFormInteraction}>
                   {/* Name */}
                   <div>
-                    <label className="block font-semibold mb-2 text-sm text-white/90">اسمك إيه؟</label>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">الاسم بالكامل</label>
                     <input
                       type="text"
                       value={formData.name}
@@ -548,7 +512,7 @@ export default function Home() {
                       onBlur={() => markTouched("name")}
                       className={`w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("name") ? "border-red-500/70" : ""}`}
                       style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("name") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
-                      placeholder="الاسم الأول يكفي"
+                      placeholder="اكتب اسمك"
                     />
                     {shouldShowError("name") && (
                       <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
@@ -560,7 +524,7 @@ export default function Home() {
 
                   {/* Phone */}
                   <div>
-                    <label className="block font-semibold mb-2 text-sm text-white/90">رقم الموبايل</label>
+                    <label className="block font-semibold mb-2 text-sm text-white/90">رقم الواتساب</label>
                     <div className="relative">
                       <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                       <input
@@ -606,6 +570,8 @@ export default function Home() {
                     )}
                   </div>
 
+                  {false && (
+                    <>
                   {/* Role - أنت حالياً إيه؟ */}
                   <div>
                     <label className="block font-semibold mb-2 text-sm text-white/90">أنت حالياً إيه؟</label>
@@ -778,6 +744,9 @@ export default function Home() {
                     )}
                   </div>
 
+                    </>
+                  )}
+
                   {/* Error State */}
                   {formState === "error" && (
                     <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#EF4444" }}>
@@ -803,14 +772,14 @@ export default function Home() {
                       </span>
                     ) : (
                       <>
-                        ابعت بياناتك وخد الخطوة اللي بعديها
+                        سجّل وافتح واتساب دلوقتي
                         <ArrowLeft className="w-5 h-5 mr-2" />
                       </>
                     )}
                   </Button>
 
                   <p className="text-center text-white/30 text-xs">
-                    🔒 بياناتك في أمان تام — هنتواصل معاك خلال 24 ساعة
+                    🔒 بياناتك في أمان تام — بعد التسجيل هتدخل محادثة واتساب مباشرة مع الفريق
                   </p>
                 </form>
               </Card>
@@ -892,7 +861,6 @@ export default function Home() {
                       phone={formData.phone}
                       whatsappUrl={postSubmitWhatsAppUrl}
                       onWhatsAppClick={handleWhatsAppClick}
-                      onDownload={generatePDF}
                     />
                   </motion.div>
 
@@ -928,17 +896,17 @@ export default function Home() {
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
-              ليه ده مختلف عن أي كورس تاني؟
+              هتطلع من المحاضرة بإيه؟
             </h2>
             <p className="text-white/50 text-lg">
-              لأنك مش بتتعلم بس — أنت بتشتغل فعلاً من أول يوم
+              خريطة عملية تفهم بيها السوق قبل ما تصرف جنيه واحد في الإعلان.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { icon: Target, title: "منتج حقيقي تبيعه", desc: "مش هتتعلم نظري وتقعد. هتختار منتج من كتالوج فيه مئات المنتجات وتبدأ تبيعه فعلاً.", color: ORANGE },
-              { icon: Truck, title: "مخزون + شحن + معرض", desc: "المنتج بيتخزن عندنا، بيتغلف باحترافية، وبيتشحن لأي حتة في مصر. أنت ركّز على البيع.", color: "#10B981" },
-              { icon: Users, title: "دعم مستمر مش بيخلص", desc: "مجتمع تجار + متابعة أسبوعية + فريق دعم. مش هتلاقي نفسك لوحدك أبداً.", color: GOLD },
+              { icon: Target, title: "اختار المنتج الصح", desc: "هتفهم إزاي تميّز المنتج اللي عنده فرصة حقيقية للبيع بدل ما تمشي ورا أي ترند.", color: ORANGE },
+              { icon: TrendingUp, title: "افهم العميل وزاوية البيع", desc: "هتتعلم تقرأ احتياج العميل وتبني Marketing Angle يخلّي الرسالة توصل بشكل مقنع.", color: "#10B981" },
+              { icon: BarChart3, title: "ابنِ إعلان وتختبره", desc: "هتشوف منطق الكريتيف والاختبار عملياً، وتعرف تقيس قبل ما تزود ميزانية الإعلان.", color: GOLD },
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -985,10 +953,10 @@ export default function Home() {
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
-              رحلتك معانا — من الصفر لأول بيعة
+              خريطة المحاضرة — من الفكرة لأول خطوة صح
             </h2>
             <p className="text-white/50 text-lg">
-              6 خطوات واضحة. كل خطوة بنمشيها معاك.
+              تطبيق مباشر على أساسيات التجارة الإلكترونية من غير حشو نظري.
             </p>
           </div>
 
@@ -999,12 +967,12 @@ export default function Home() {
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { step: "01", title: "تختار منتجك", desc: "من كتالوج فيه مئات المنتجات المجربة والمربحة", emoji: "🎯" },
-                { step: "02", title: "بنوصلك بالمورد", desc: "تاخد سعر أول يد — أقل سعر ممكن", emoji: "🤝" },
-                { step: "03", title: "بنخزنه ونغلفه", desc: "في مخازننا. أنت مش محتاج تشيل هم حاجة", emoji: "📦" },
-                { step: "04", title: "بتتعلم تسوّق", desc: "حملة إعلانية حقيقية على منتجك — مش تمارين", emoji: "📢" },
-                { step: "05", title: "بتجيب أوردرات", desc: "أوردرات حقيقية من ناس حقيقية", emoji: "🛒" },
-                { step: "06", title: "أول ربح فعلي", desc: "فلوس في جيبك من مشروعك أنت", emoji: "💰" },
+                { step: "01", title: "عقلية التاجر", desc: "تفرق بين التفكير العشوائي والقرار المبني على بيانات السوق", emoji: "🧠" },
+                { step: "02", title: "اختيار المنتج", desc: "تعرف معايير المنتج القابل للبيع قبل ما تدفع في مخزون أو إعلان", emoji: "🎯" },
+                { step: "03", title: "فهم العميل", desc: "تحدد دوافع الشراء والاعتراضات اللي لازم رسالتك ترد عليها", emoji: "👥" },
+                { step: "04", title: "Marketing Angle", desc: "تحوّل فهمك للعميل إلى زاوية كلام تشد الانتباه وتقربه للقرار", emoji: "💡" },
+                { step: "05", title: "Creative يبيع", desc: "تعرف إيه اللي يخلي الإعلان واضح ومقنع من أول ثواني", emoji: "📢" },
+                { step: "06", title: "Testing بذكاء", desc: "تقرأ النتيجة وتعرف إمتى تثبّت، تعدّل، أو توقف الفكرة", emoji: "📊" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -1031,9 +999,9 @@ export default function Home() {
 
           {/* CTA after journey */}
           <div className="text-center mt-10">
-            <a href="#form-section">
+            <a href="#form-section" onClick={handleCampaignCtaClick}>
               <Button size="lg" className="text-black text-lg px-8 py-5 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                ابدأ رحلتك دلوقتي
+                احجز مكانك في المحاضرة
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </a>
@@ -1115,17 +1083,17 @@ export default function Home() {
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
-              المسار ده مناسب ليك لو...
+              المحاضرة دي مناسبة ليك لو...
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
             {[
               "عايز تبدأ مشروع بس مش عارف تبدأ منين",
-              "جرّبت كورسات قبل كده ومحصلش حاجة",
+              "جرّبت محتوى قبل كده ولسه مش عارف تحوّل المعرفة لخطة",
               "عندك وظيفة وعايز مصدر دخل إضافي",
               "عايز تتعلم التسويق بشكل عملي مش نظري",
               "عندك طاقة ومستعد تشتغل بجد",
-              "بتدور على منتج مربح ومضمون",
+              "عايز تتعلم معايير اختيار المنتج قبل ما تخاطر بفلوسك",
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -1143,9 +1111,9 @@ export default function Home() {
           </div>
           {/* CTA */}
           <div className="text-center mt-10">
-            <a href="#form-section">
+            <a href="#form-section" onClick={handleCampaignCtaClick}>
               <Button size="lg" className="text-black text-lg px-8 py-5 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                ابعت بياناتك وخلّينا نبدأ
+                احجز مكانك في المحاضرة
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </a>
@@ -1160,29 +1128,29 @@ export default function Home() {
             <div>
               <Badge className="mb-4 border" style={{ backgroundColor: `${GOLD}15`, color: GOLD, borderColor: `${GOLD}35` }}>
                 <Store className="w-4 h-4 ml-1" />
-                بوابتك العملية للمنتجات
+                خطوتك العملية بعد المحاضرة
               </Badge>
               <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
-                منصة المنتجات بالجملة
+                بعد ما تفهم الخريطة
                 <br />
-                <span style={{ color: ORANGE }}>بدل ما الروابط تتوه منك</span>
+                <span style={{ color: ORANGE }}>تبدأ تطبّق على منتج مناسب</span>
               </h2>
               <p className="text-white/60 text-lg leading-relaxed mb-7">
-                كل المتدربين ليهم مدخل واحد لمنصة Egy-Pioneers: تتصفح المنتجات، تختار المناسب لمشروعك، وتتابع طلباتك من نفس المكان.
+                منصة المنتجات هي المرحلة العملية التالية بعد ما تتعلم معايير الاختيار في المحاضرة. سجّل الأول، وبعدها الفريق يساعدك تحدد الخطوة المناسبة ليك.
               </p>
               <div className="flex flex-wrap gap-3 items-center">
                 <Button asChild size="lg" className="group text-black text-lg px-7 py-6 font-bold shadow-xl transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(234,138,30,0.42)] active:translate-y-0 active:scale-[0.97]" style={{ backgroundColor: ORANGE }}>
-                  <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
-                    ادخل منصة المنتجات
-                    <ExternalLink className="w-5 h-5 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
+                  <a href="#form-section" onClick={handleCampaignCtaClick}>
+                    احجز المحاضرة أولاً
+                    <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
                   </a>
                 </Button>
                 <Button type="button" variant="outline" onClick={openStoreGuide} className="group border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08] font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853]/70 hover:shadow-[0_0_24px_rgba(212,168,83,0.2)] active:translate-y-0 active:scale-[0.97]">
                   <Sparkles className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110" style={{ color: GOLD }} />
-                  شوف أول 3 خطوات
+                  شوف اللي هتطبقه بعد المحاضرة
                 </Button>
               </div>
-              <p className="text-white/35 text-xs mt-3">هتتفتح المنصة في تبويب جديد علشان تفضل الصفحة دي معاك.</p>
+              <p className="text-white/35 text-xs mt-3">هدفنا الأول: تحجز مكانك وتفهم الخطة، وبعدها تختار مرحلة التطبيق المناسبة.</p>
             </div>
 
             <Card className="relative overflow-hidden border p-5 md:p-6" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
@@ -1234,11 +1202,11 @@ export default function Home() {
             </div>
             <div className="space-y-3">
               {[
-                { q: "إيه الفرق بينكم وبين كورسات الدروبشيبنج؟", a: "إحنا مش كورس نظري. بنديك منتج حقيقي، مخزون فعلي، معرض حقيقي، وبنمشي معاك خطوة بخطوة لحد ما تبيع فعلاً. مش بنسيبك بعد الكورس." },
-                { q: "محتاج رأس مال كبير؟", a: "لا. المنتجات بأسعار أول يد وبتقدر تبدأ بميزانية محدودة. وبتدفع لما تبيع." },
-                { q: "لو مش فاهم حاجة في التسويق؟", a: "عادي. بنبدأ معاك من الصفر وبنعلمك كل حاجة عملياً. وفيه فريق دعم متاح ليك." },
-                { q: "المعرض فين؟", a: "1 عمارات مجمع الفردوس - بجوار نادي السكة - أمام موقف السوبر جيت." },
-                { q: "إيه الضمان إني هنجح؟", a: "89% من اللي بدأوا معانا حققوا أول بيعة خلال أول شهر. ده لأننا مش بنسيبك — فيه متابعة مستمرة ودعم فني وتسويقي." },
+                { q: "المحاضرة دي لمين؟", a: "للي عايز يبدأ في التجارة الإلكترونية، أو بدأ بالفعل ومحتاج يفهم المنتج والعميل والإعلان بشكل منظم." },
+                { q: "هتتعلم إيه في المحاضرة؟", a: "عقلية التاجر، معايير اختيار المنتج، فهم العميل، زوايا البيع، والكريتيف والـTesting بصورة تطبيقية." },
+                { q: "محتاج خبرة أو رأس مال كبير؟", a: "لا. المحاضرة تبدأ من الأساسيات وتساعدك تفهم القرار قبل ما تخاطر في منتج أو ميزانية إعلان." },
+                { q: "إيه اللي يحصل بعد التسجيل؟", a: "بعد التسجيل هتنتقل مباشرة إلى واتساب برسالة جاهزة، وهناك تكمل التنسيق وتحصل على تفاصيل الحضور." },
+                { q: "التسجيل مجاني؟", a: "نعم، التسجيل في المحاضرة مجاني والأماكن محدودة حسب التنظيم." },
               ].map((item, i) => (
                 <div key={i} className="border rounded-xl overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
                   <button
@@ -1272,22 +1240,16 @@ export default function Home() {
         <div className="container">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              الخطوة الجاية عليك
+              جاهز تشوف الخريطة العملية بنفسك؟
             </h2>
             <p className="text-white/50 text-lg mb-8">
-              ابعت بياناتك — وهنرد عليك بخطة عملية مخصصة ليك خلال 24 ساعة.
+              التسجيل مجاني. سجّل بياناتك وهتدخل محادثة واتساب مباشرة علشان تكمل الخطوة الجاية.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="#form-section">
+              <a href="#form-section" onClick={handleCampaignCtaClick}>
                 <Button size="lg" className="text-black text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                  سجّل بياناتك
+                  احجز مكانك الآن
                   <ArrowLeft className="w-5 h-5 mr-2" />
-                </Button>
-              </a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick}>
-                <Button size="lg" variant="outline" className="text-white hover:bg-white/10 text-lg px-8 py-6 font-bold bg-transparent" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
-                  <MessageCircle className="w-5 h-5 ml-2" />
-                  أو كلمنا مباشرة
                 </Button>
               </a>
             </div>
@@ -1315,17 +1277,17 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-4 text-white text-sm">تواصل معانا</h4>
               <div className="space-y-3">
-                <a href="https://wa.me/15559022738" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                <a href="https://wa.me/15559022738" target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick} className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
                   <Phone className="w-4 h-4" />
                   <span dir="ltr">+1 555 902 2738</span>
                 </a>
-                <a href="https://wa.me/201025073479" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
+                <a href="https://wa.me/201025073479" target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick} className="flex items-center gap-3 text-white/60 text-sm hover:text-white transition-colors">
                   <Phone className="w-4 h-4" />
                   <span dir="ltr">+20 10 25073479</span>
                 </a>
                 <div className="flex items-center gap-3 text-white/60 text-sm">
                   <MessageCircle className="w-4 h-4" />
-                  <a href={WHATSAPP_URL} className="hover:text-white transition-colors">واتساب</a>
+                  <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick} className="hover:text-white transition-colors">واتساب</a>
                 </div>
                 <div className="flex items-center gap-3 text-white/60 text-sm">
                   <MapPin className="w-4 h-4 shrink-0" />
@@ -1338,9 +1300,9 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-4 text-white text-sm">روابط سريعة</h4>
               <div className="space-y-2">
-                <a href="#form-section" className="block text-white/60 text-sm hover:text-white transition-colors">سجّل بياناتك</a>
+                <a href="#form-section" onClick={handleCampaignCtaClick} className="block text-white/60 text-sm hover:text-white transition-colors">احجز مكانك في المحاضرة</a>
                 <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick} className="block text-white/60 text-sm hover:text-white transition-colors">منصة المنتجات بالجملة</a>
-                <a href={WHATSAPP_URL} className="block text-white/60 text-sm hover:text-white transition-colors">تواصل على واتساب</a>
+                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" onClick={handleWhatsAppClick} className="block text-white/60 text-sm hover:text-white transition-colors">تواصل على واتساب</a>
               </div>
             </div>
           </div>
@@ -1433,98 +1395,6 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* Sticky WhatsApp Button */}
-      <a
-        href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleWhatsAppClick}
-        className="fixed bottom-6 left-6 z-50 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-200"
-        style={{ backgroundColor: "#25D366" }}
-      >
-        <MessageCircle className="w-7 h-7" />
-      </a>
-
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {showConfirmModal && (
-          <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {/* Backdrop */}
-            <motion.div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setShowConfirmModal(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-            {/* Modal Content */}
-            <motion.div
-              className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border p-6 shadow-2xl"
-              style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="absolute top-4 left-4 text-white/40 hover:text-white/80 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="text-center mb-5">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: `${ORANGE}15` }}>
-                  <Eye className="w-6 h-6" style={{ color: ORANGE }} />
-                </div>
-                <h3 className="text-xl font-black text-white">راجع بياناتك قبل الإرسال</h3>
-                <p className="text-white/50 text-sm mt-1">تأكد إن كل حاجة صح علشان نقدر نتواصل معاك</p>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {[
-                  { label: "الاسم", value: formData.name },
-                  { label: "رقم الموبايل", value: formData.phone },
-                  { label: "الإيميل", value: formData.email },
-                  { label: "الحالة", value: formData.role === "student" ? "طالب" : formData.role === "employee" ? "موظف" : formData.role === "business_owner" ? "صاحب مشروع" : formData.role === "marketer" ? "مسوّق" : "أخرى" },
-                  { label: "مرحلة المشروع", value: formData.stage === "idea" ? "لسه فكرة" : formData.stage === "starting" ? "بدأت بس لسه في الأول" : "شغّال ومحتاج أطوّر" },
-                  { label: "الجاهزية", value: formData.readiness === "now" ? "جاهز دلوقتي" : formData.readiness === "month" ? "خلال شهر" : "بس بسأل" },
-                  { label: "تفضيل التعلم", value: formData.preference === "online" ? "أونلاين" : formData.preference === "offline" ? "حضور في المقر" : "مش فارق معايا" },
-                  { label: "أكبر تحدي", value: formData.challenge },
-                ].map((item, i) => (
-                  <div key={i} className="flex justify-between items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: DARK_CARD }}>
-                    <span className="text-white/50 text-xs shrink-0">{item.label}</span>
-                    <span className="text-white text-sm text-left font-medium">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 py-5 text-white/70 border font-bold"
-                  style={{ backgroundColor: "transparent", borderColor: "rgba(255,255,255,0.15)" }}
-                >
-                  عدّل البيانات
-                </Button>
-                <Button
-                  onClick={confirmAndSubmit}
-                  className="flex-1 py-5 text-black font-bold text-lg"
-                  style={{ backgroundColor: ORANGE }}
-                >
-                  تأكيد وإرسال
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

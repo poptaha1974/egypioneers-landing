@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LeadSuccessHandoff } from "../client/src/components/LeadSuccessHandoff";
 import { PostSubmitWhatsAppAction } from "../client/src/components/PostSubmitWhatsAppAction";
-import { getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "../client/src/lib/leadHandoff";
+import { CAMPAIGN_WHATSAPP_PHONE, getCampaignWhatsAppUrl, getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "../client/src/lib/leadHandoff";
 
 describe("تسليم العميل إلى واتساب بعد نجاح النموذج", () => {
   it("يعرض رابط محادثة واتساب فقط بعد نجاح النموذج", () => {
@@ -11,7 +11,8 @@ describe("تسليم العميل إلى واتساب بعد نجاح النمو
     expect(getPostSubmitWhatsAppUrl("idle")).toBeNull();
     expect(getPostSubmitWhatsAppUrl("submitting")).toBeNull();
     expect(getPostSubmitWhatsAppUrl("error")).toBeNull();
-    expect(WHATSAPP_URL).toMatch(/^https:\/\/wa\.me\/15559022738\?text=/);
+    expect(WHATSAPP_URL).toMatch(new RegExp(`^https://wa\\.me/${CAMPAIGN_WHATSAPP_PHONE}\\?text=`));
+    expect(decodeURIComponent(getCampaignWhatsAppUrl("إيهاب"))).toContain("أنا إيهاب سجلت في محاضرة Egy-Pioneers المجانية");
   });
 
   it("يعرض زر واتساب فعلياً في واجهة النجاح دون الحاجة لإرسال نموذج حقيقي", () => {
@@ -28,7 +29,7 @@ describe("تسليم العميل إلى واتساب بعد نجاح النمو
       }),
     );
 
-    expect(successMarkup).toContain('href="https://wa.me/15559022738?text=');
+    expect(successMarkup).toContain(`href="https://wa.me/${CAMPAIGN_WHATSAPP_PHONE}?text=`);
     expect(successMarkup).toContain('target="_blank"');
     expect(successMarkup).toContain("كلمنا على واتساب");
     expect(idleMarkup).toBe("");
@@ -41,13 +42,12 @@ describe("تسليم العميل إلى واتساب بعد نجاح النمو
         phone: "01025073479",
         whatsappUrl: getPostSubmitWhatsAppUrl("success"),
         onWhatsAppClick: () => {},
-        onDownload: () => {},
       }),
     );
 
-    expect(markup).toContain("شكراً ليك إيهاب");
-    expect(markup).toContain("استلمنا بياناتك وبنجهّزلك خطة عملية مخصصة.");
-    expect(markup).toContain('href="https://wa.me/15559022738?text=');
+    expect(markup).toContain("تسجيلك تم يا إيهاب");
+    expect(markup).toContain("بنحوّلك دلوقتي لمحادثة واتساب");
+    expect(markup).toContain(`href="https://wa.me/${CAMPAIGN_WHATSAPP_PHONE}?text=`);
     expect(markup).toContain("كلمنا على واتساب");
   });
 });
