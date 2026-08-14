@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { STORE_URL } from "@/lib/storeLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,9 @@ import {
   Home as HomeIcon,
   X,
   Eye,
+  ExternalLink,
+  Search,
+  ShoppingCart,
 } from "lucide-react";
 
 // ======================================================
@@ -134,6 +138,13 @@ export default function Home() {
   // Schedule: fire on WhatsApp click
   const handleWhatsAppClick = () => {
     fbq("track", "Schedule", { content_name: "WhatsApp Contact" });
+  };
+
+  const handleStoreClick = () => {
+    fbq("trackCustom", "WholesalePlatformClick", {
+      content_name: "Egy-Pioneers Wholesale Platform",
+      destination: STORE_URL,
+    });
   };
 
   // CompleteRegistration: fire when form succeeds
@@ -359,12 +370,20 @@ export default function Home() {
             />
             <span className="font-bold text-lg text-white">Egy-Pioneers</span>
           </div>
-          <a href="#form-section">
-            <Button className="text-black gap-2 font-semibold shadow-lg" style={{ backgroundColor: ORANGE }}>
-              <Zap className="w-4 h-4" />
-              ابدأ دلوقتي
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="hidden sm:inline-flex gap-2 border text-white hover:bg-white/10" style={{ borderColor: `${ORANGE}80`, backgroundColor: "transparent" }}>
+              <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+                <Store className="w-4 h-4" style={{ color: ORANGE }} />
+                منصة المنتجات
+              </a>
             </Button>
-          </a>
+            <a href="#form-section">
+              <Button className="text-black gap-2 font-semibold shadow-lg" style={{ backgroundColor: ORANGE }}>
+                <Zap className="w-4 h-4" />
+                ابدأ دلوقتي
+              </Button>
+            </a>
+          </div>
         </div>
       </header>
 
@@ -422,6 +441,13 @@ export default function Home() {
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
+              <Button asChild size="lg" variant="outline" className="border-white/30 bg-black/20 text-white hover:bg-white/10 text-base px-6 py-6 font-bold">
+                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+                  <Store className="w-5 h-5 ml-2" style={{ color: GOLD }} />
+                  شوف منصة المنتجات بالجملة
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                </a>
+              </Button>
             </motion.div>
             {/* Micro social proof */}
             <motion.div
@@ -1135,76 +1161,66 @@ export default function Home() {
         </div>
       </AnimatedSection>
 
-      {/* Testimonials Section */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_CARD }}>
+      {/* Wholesale Platform Section */}
+      <AnimatedSection id="wholesale-platform" className="py-16 border-y" style={{ backgroundColor: DARK_CARD, borderColor: `${ORANGE}15` }}>
         <div className="container">
-          <div className="text-center mb-10">
-            <Badge className="mb-4 text-sm px-4 py-1.5" style={{ backgroundColor: `${ORANGE}15`, color: ORANGE }}>
-              ⭐ 4.8/5 من 1200+ طالب
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
-              اللي جرّبوا بيقولوا إيه؟
-            </h2>
-            <p className="text-white/50 text-lg">
-              تقييمات حقيقية من طلاب بدأوا مشاريعهم معانا
-            </p>
-          </div>
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center max-w-6xl mx-auto">
+            <div>
+              <Badge className="mb-4 border" style={{ backgroundColor: `${GOLD}15`, color: GOLD, borderColor: `${GOLD}35` }}>
+                <Store className="w-4 h-4 ml-1" />
+                بوابتك العملية للمنتجات
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
+                منصة المنتجات بالجملة
+                <br />
+                <span style={{ color: ORANGE }}>بدل ما الروابط تتوه منك</span>
+              </h2>
+              <p className="text-white/60 text-lg leading-relaxed mb-7">
+                كل المتدربين ليهم مدخل واحد لمنصة Egy-Pioneers: تتصفح المنتجات، تختار المناسب لمشروعك، وتتابع طلباتك من نفس المكان.
+              </p>
+              <Button asChild size="lg" className="text-black text-lg px-7 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
+                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+                  ادخل منصة المنتجات
+                  <ExternalLink className="w-5 h-5 mr-2" />
+                </a>
+              </Button>
+              <p className="text-white/35 text-xs mt-3">هتتفتح في تبويب جديد علشان تفضل الصفحة دي معاك.</p>
+            </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                name: "أحمد محمد",
-                role: "صاحب مشروع أونلاين",
-                text: "كنت تايه ومش عارف أبدأ منين. بعد الكورس عملت أول بيعة في أسبوعين بس.",
-                stars: 5,
-              },
-              {
-                name: "سارة علي",
-                role: "موظفة بدأت مشروع جانبي",
-                text: "المنتج كان جاهز والحملة اتعملت معايا. حرفياً كل حاجة كانت جاهزة علشان أبدأ.",
-                stars: 5,
-              },
-              {
-                name: "محمد إبراهيم",
-                role: "طالب جامعي",
-                text: "اتعلمت إزاي أبيع وأنا لسه في الكلية. الفريق فضل معايا لحد ما عملت أول 1000 جنيه.",
-                stars: 5,
-              },
-            ].map((testimonial, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.4 }}
-              >
-                <Card className="p-6 h-full border" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}15` }}>
-                  <div className="flex gap-0.5 mb-3">
-                    {Array.from({ length: testimonial.stars }).map((_, s) => (
-                      <span key={s} className="text-lg" style={{ color: GOLD }}>★</span>
-                    ))}
-                  </div>
-                  <p className="text-white/80 text-sm leading-relaxed mb-4">
-                    “{testimonial.text}”
-                  </p>
-                  <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-black" style={{ backgroundColor: ORANGE }}>
-                      {testimonial.name.charAt(0)}
+            <Card className="relative overflow-hidden border p-5 md:p-6" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
+              <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full blur-3xl" style={{ backgroundColor: `${ORANGE}18` }} />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${ORANGE}18` }}>
+                      <Store className="w-5 h-5" style={{ color: ORANGE }} />
                     </div>
                     <div>
-                      <p className="text-white text-sm font-bold">{testimonial.name}</p>
-                      <p className="text-white/40 text-xs">{testimonial.role}</p>
+                      <p className="font-bold text-white">منصة Egy-Pioneers</p>
+                      <p className="text-white/40 text-xs">منتجات بالجملة للمتدربين</p>
                     </div>
                   </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <p className="text-white/30 text-xs">
-              التقييمات من طلاب حقيقيين أتمّوا البرنامج العملي
-            </p>
+                  <span className="text-xs px-2.5 py-1 rounded-full" style={{ backgroundColor: "rgba(16,185,129,0.14)", color: "#6EE7B7" }}>متاحة أونلاين</span>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { icon: Search, title: "دور واختار", desc: "تصفح المنتجات والتصنيفات بسهولة." },
+                    { icon: Package, title: "اعرف السعر", desc: "شوف تفاصيل المنتج وسعره المناسب للتاجر." },
+                    { icon: ShoppingCart, title: "تابع شغلك", desc: "راجع طلباتك ومفضلاتك من حسابك." },
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-center gap-4 p-3 rounded-xl" style={{ backgroundColor: DARK_CARD }}>
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${GOLD}14` }}>
+                        <item.icon className="w-4 h-4" style={{ color: GOLD }} />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-bold">{item.title}</p>
+                        <p className="text-white/45 text-xs mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </AnimatedSection>
@@ -1321,6 +1337,7 @@ export default function Home() {
               <h4 className="font-bold mb-4 text-white text-sm">روابط سريعة</h4>
               <div className="space-y-2">
                 <a href="#form-section" className="block text-white/60 text-sm hover:text-white transition-colors">سجّل بياناتك</a>
+                <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick} className="block text-white/60 text-sm hover:text-white transition-colors">منصة المنتجات بالجملة</a>
                 <a href={WHATSAPP_URL} className="block text-white/60 text-sm hover:text-white transition-colors">تواصل على واتساب</a>
               </div>
             </div>
