@@ -63,6 +63,9 @@ describe("Leads tRPC Router - Integration Tests", () => {
         phone: "01012345678",
         email: "ahmed@test.com",
       });
+      expect((createLead as any).mock.invocationCallOrder[0]).toBeLessThan(
+        (deliverAcademyLead as any).mock.invocationCallOrder[0],
+      );
       expect(result).toEqual({ id: 1, intentScore: 75, leadStatus: "HOT", automationDelivered: true });
     });
 
