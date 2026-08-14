@@ -3,6 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
+import { LeadSuccessHandoff } from "@/components/LeadSuccessHandoff";
 import { PostSubmitWhatsAppAction } from "@/components/PostSubmitWhatsAppAction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -881,54 +882,18 @@ export default function Home() {
                     </motion.div>
                   </div>
 
-                  <motion.h3
-                    className="text-2xl md:text-3xl font-black text-white mb-3"
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    شكراً ليك {formData.name ? formData.name.split(" ")[0] : ""} 🎉
-                  </motion.h3>
-
-                  <motion.p
-                    className="text-white/60 text-lg mb-4 leading-relaxed"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    استلمنا بياناتك وبنجهّزلك خطة عملية مخصصة.
-                  </motion.p>
-
-                  <motion.div
-                    className="p-4 rounded-xl mb-6"
-                    style={{ backgroundColor: `${DARK_CARD}` }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <p className="text-white/80 text-sm leading-relaxed">
-                      📩 هنتواصل معاك على <span className="font-bold" style={{ color: ORANGE }}>{formData.phone || "واتساب"}</span> خلال 24 ساعة
-                      <br />
-                      <span className="text-white/50 text-xs">عايز تبدأ فوراً؟ كلمنا دلوقتي على واتساب</span>
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    className="flex flex-col sm:flex-row gap-3 justify-center"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    <PostSubmitWhatsAppAction whatsappUrl={postSubmitWhatsAppUrl} onWhatsAppClick={handleWhatsAppClick} />
-                    <Button
-                      size="lg"
-                      onClick={generatePDF}
-                      className="text-white text-base px-6 py-5 font-bold border w-full sm:w-auto"
-                      style={{ backgroundColor: "transparent", borderColor: `${ORANGE}50` }}
-                    >
-                      <Download className="w-4 h-4 ml-2" />
-                      حمّل نسخة PDF
-                    </Button>
+                    <LeadSuccessHandoff
+                      firstName={formData.name ? formData.name.split(" ")[0] : ""}
+                      phone={formData.phone}
+                      whatsappUrl={postSubmitWhatsAppUrl}
+                      onWhatsAppClick={handleWhatsAppClick}
+                      onDownload={generatePDF}
+                    />
                   </motion.div>
 
                   <motion.div
