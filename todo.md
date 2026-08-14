@@ -16,3 +16,9 @@
 - [x] Improve Success Animation in the form (confetti/checkmark animation)
 - [x] Auto-clear form fields after successful submission
 - [x] Register dashboard route in App.tsx (admin-only)
+- [x] Compare the attached Elite Campaign Kit versions and select a controlled reference version
+- [x] Build a video campaign draft playbook with CAPI validation gates and financial leakage analysis
+- [x] Document exact Meta Ads geography targeting settings and leakage-control thresholds for the new campaign
+- [x] Define device, age, and dayparting test settings with financial leakage thresholds
+- [x] Package the campaign analysis and draft-preparation workflow as a reusable skill
+- [x] Create a video creative, CAPI, and daily performance-review playbook for the new campaign
