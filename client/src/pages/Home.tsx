@@ -47,6 +47,7 @@ import {
   ShoppingCart,
   LogIn,
   Sparkles,
+  Clock3,
 } from "lucide-react";
 
 // ======================================================
@@ -914,22 +915,26 @@ export default function Home() {
         </div>
       </AnimatedSection>
 
-      {/* Trust Section - "ليه تثق فينا؟" */}
+      {/* Webinar Open Segment - محتوى موثق بديل عن آراء غير متاحة */}
       <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-10">
+            <Badge className="mb-4 border" style={{ backgroundColor: `${ORANGE}15`, color: ORANGE, borderColor: `${ORANGE}35` }}>
+              <Clock3 className="w-4 h-4 ml-1" />
+              الجزء المفتوح من الويبنار
+            </Badge>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
-              هتطلع من المحاضرة بإيه؟
+              ماذا ستأخذ من أول 30 دقيقة؟
             </h2>
             <p className="text-white/50 text-lg">
-              خريطة عملية تفهم بيها السوق قبل ما تصرف جنيه واحد في الإعلان.
+              قبل ما تبدأ الورشة الخاصة بأعضاء نادي تجار العرب، هتخرج بخريطة أولية تخليك تشوف التجارة الإلكترونية بعين تاجر مش متفرج.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { icon: Target, title: "اختار المنتج الصح", desc: "هتفهم إزاي تميّز المنتج اللي عنده فرصة حقيقية للبيع بدل ما تمشي ورا أي ترند.", color: ORANGE },
-              { icon: TrendingUp, title: "افهم العميل وزاوية البيع", desc: "هتتعلم تقرأ احتياج العميل وتبني Marketing Angle يخلّي الرسالة توصل بشكل مقنع.", color: "#10B981" },
-              { icon: BarChart3, title: "ابنِ إعلان وتختبره", desc: "هتشوف منطق الكريتيف والاختبار عملياً، وتعرف تقيس قبل ما تزود ميزانية الإعلان.", color: GOLD },
+              { icon: Target, title: "فلتر المنتج قبل ما تدفع", desc: "3 أسئلة عملية تساعدك تفرّق بين فكرة تستحق الاختبار وسلعة ممكن تركن في المخزن.", color: ORANGE },
+              { icon: TrendingUp, title: "اقرأ دوافع العميل", desc: "هتفهم كيف تحوّل احتياج العميل لرسالة بيع مباشرة بدل كلام عام لا يحرك قرار الشراء.", color: "#10B981" },
+              { icon: BarChart3, title: "اعرف بداية الاختبار", desc: "هتشوف ترتيب أول قرار في المنتج والإعلان عشان تقيس قبل ما تزود أي ميزانية.", color: GOLD },
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -951,21 +956,21 @@ export default function Home() {
         </div>
       </AnimatedSection>
 
-      {/* Stats Section */}
+      {/* Webinar Facts Section */}
       <section className="py-10 border-y" style={{ backgroundColor: DARK, borderColor: "rgba(234,138,30,0.1)" }}>
         <div className="container">
           <div className="grid grid-cols-3 gap-8">
-            <div className="text-center" ref={studentsCounter.ref as any}>
-              <div className="text-3xl md:text-4xl font-black" style={{ color: ORANGE }}>+{studentsCounter.count}</div>
-              <div className="text-white/50 mt-1 text-sm md:text-base">بدأوا رحلتهم</div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black" style={{ color: ORANGE }}>30</div>
+              <div className="text-white/50 mt-1 text-sm md:text-base">دقيقة ويبنار مفتوح</div>
             </div>
-            <div className="text-center" ref={productsCounter.ref as any}>
-              <div className="text-3xl md:text-4xl font-black" style={{ color: GOLD }}>+{productsCounter.count}</div>
-              <div className="text-white/50 mt-1 text-sm md:text-base">منتج جاهز</div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black" style={{ color: GOLD }}>3</div>
+              <div className="text-white/50 mt-1 text-sm md:text-base">محاور عملية</div>
             </div>
-            <div className="text-center" ref={successCounter.ref as any}>
-              <div className="text-3xl md:text-4xl font-black text-white">{successCounter.count}%</div>
-              <div className="text-white/50 mt-1 text-sm md:text-base">باعوا خلال شهر</div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black text-white">6–9</div>
+              <div className="text-white/50 mt-1 text-sm md:text-base">كل أربعاء مساءً</div>
             </div>
           </div>
         </div>
