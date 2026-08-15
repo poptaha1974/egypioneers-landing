@@ -38,4 +38,14 @@ describe("قياس حملة FunnelFast داخل صفحة Manus", () => {
     expect(home).toContain("const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;");
     expect(home).toContain("}, POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS);");
   });
+
+  it("يقيس نقر CTA وبداية النموذج وفتح واتساب وتشغيل الفيديو دون تغيير الأحداث الأساسية", () => {
+    const home = readFileSync(homePath, "utf8");
+
+    expect(home).toContain('"CTA_Click"');
+    expect(home).toContain('"FormStart"');
+    expect(home).toContain('"WhatsAppOpen"');
+    expect(home).toContain('"VideoPlay"');
+    expect(home).toContain('"VideoComplete"');
+  });
 });

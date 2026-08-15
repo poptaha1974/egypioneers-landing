@@ -66,7 +66,9 @@ const DARK_CARD = "#141414";
 const DARK_SECTION = "#0F0F0F";
 const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;
 const STORE_GUIDE_ICONS = [LogIn, Search, ShoppingCart];
-const WEBINAR_PILOT_VIDEO_SRC = "/manus-storage/egypioneers_webinar_pilot_v3_cairo_safe-title_dd1b3f97.mp4";
+const WEBINAR_CTA_LABEL = "احجز مكانك في أول 30 دقيقة مجاناً";
+const WEBINAR_PILOT_VIDEO_SRC = "/manus-storage/egypioneers_webinar_pilot_v4_cairo_bddcd9e7.mp4";
+const WEBINAR_PILOT_POSTER_SRC = "/manus-storage/egypioneers_webinar_pilot_poster_cairo_clean_dbfe8aea.jpg";
 
 // Counter animation hook
 function useCounter(end: number, duration: number = 2000) {
@@ -132,6 +134,9 @@ export default function Home() {
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [showStoreGuide, setShowStoreGuide] = useState(false);
   const [completedStoreSteps, setCompletedStoreSteps] = useState(0);
+  const nameFieldRef = useRef<HTMLInputElement>(null);
+  const phoneFieldRef = useRef<HTMLInputElement>(null);
+  const emailFieldRef = useRef<HTMLInputElement>(null);
 
   // Meta Pixel helper
   const fbq = (...args: any[]) => {
@@ -140,18 +145,21 @@ export default function Home() {
     }
   };
 
-  // ViewContent: fire once on first form interaction
+  // أحداث بداية التسجيل: مرة واحدة عند أول تفاعل
   const hasTrackedViewContent = useRef(false);
   const handleFormInteraction = () => {
     if (!hasTrackedViewContent.current) {
       hasTrackedViewContent.current = true;
       fbq("track", FUNNELFAST_PIXEL_EVENTS.viewContent, { content_name: "EgyPioneers Wednesday Webinar Registration" });
       fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.formOpened, { content_name: "EgyPioneers Wednesday Webinar Registration" });
+      fbq("trackCustom", "FormStart", { content_name: "EgyPioneers Wednesday Webinar Registration" });
     }
   };
 
-  const handleCampaignCtaClick = () => {
+  const handleCampaignCtaClick = (placement: string | unknown = "Website CTA") => {
+    const resolvedPlacement = typeof placement === "string" ? placement : "Website CTA";
     handleFormInteraction();
+    fbq("trackCustom", "CTA_Click", { content_name: WEBINAR_CTA_LABEL, placement: resolvedPlacement });
   };
 
   // Schedule: fire on WhatsApp click
@@ -159,6 +167,7 @@ export default function Home() {
     fbq("track", "Schedule", { content_name: "WhatsApp Contact" });
     fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "EgyPioneers WhatsApp Handoff" });
     fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.whatsappHandoff, { content_name: "EgyPioneers WhatsApp Handoff" });
+    fbq("trackCustom", "WhatsAppOpen", { content_name: "EgyPioneers WhatsApp Handoff" });
   };
 
   const handleStoreClick = () => {
@@ -207,6 +216,19 @@ export default function Home() {
     if (formState !== "success") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
     }
+  }, [formData, formState]);
+
+  useEffect(() => {
+    const warnOnExit = (event: BeforeUnloadEvent) => {
+      const started = Boolean(formData.name.trim() || formData.phone.trim() || formData.email.trim());
+      if (formState === "idle" && started && !isFormValid()) {
+        event.preventDefault();
+        event.returnValue = "لسه فاضل بيانات بسيطة علشان تكمل تسجيلك.";
+      }
+    };
+
+    window.addEventListener("beforeunload", warnOnExit);
+    return () => window.removeEventListener("beforeunload", warnOnExit);
   }, [formData, formState]);
 
   // Clear storage on success
@@ -308,6 +330,14 @@ export default function Home() {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
+  const moveToNextField = (field: "name" | "phone") => {
+    if (getFieldError(field)) return;
+    window.requestAnimationFrame(() => {
+      if (field === "name") phoneFieldRef.current?.focus();
+      if (field === "phone") emailFieldRef.current?.focus();
+    });
+  };
+
   const shouldShowError = (field: string): boolean => {
     return (touched[field] || showAllErrors) && !!getFieldError(field);
   };
@@ -386,10 +416,10 @@ export default function Home() {
             <span className="font-bold text-lg text-white">Egy-Pioneers</span>
           </div>
           <div className="flex items-center gap-2">
-            <a href="#form-section" onClick={handleCampaignCtaClick}>
+            <a href="#form-section" onClick={() => handleCampaignCtaClick("Header") }>
               <Button className="text-black gap-2 font-semibold shadow-lg" style={{ backgroundColor: ORANGE }}>
                 <Zap className="w-4 h-4" />
-                احجز مكانك
+                {WEBINAR_CTA_LABEL}
               </Button>
             </a>
           </div>
@@ -444,9 +474,9 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
               className="flex flex-wrap gap-4"
             >
-              <a href="#form-section" onClick={handleCampaignCtaClick}>
+              <a href="#form-section" onClick={() => handleCampaignCtaClick("Hero") }>
                 <Button size="lg" className="text-black text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                  احجز مكانك في الويبنار الأسبوعي
+                  {WEBINAR_CTA_LABEL}
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>
@@ -477,10 +507,10 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-black text-white mb-3">
-                احجز مكانك في الويبنار الأسبوعي
+                {WEBINAR_CTA_LABEL}
               </h2>
               <p className="text-white/50">
-                اكتب الاسم وواتساب والإيميل — وهتنقل مباشرة لمحادثة الفريق علشان توصلك تفاصيل الويبنار.
+                اكتب الاسم وواتساب والإيميل — وبعد التسجيل هتفتح لك رسالة جاهزة على واتساب لتكمل التنسيق.
               </p>
             </div>
 
@@ -514,9 +544,10 @@ export default function Home() {
                     <label className="block font-semibold mb-2 text-sm text-white/90">الاسم بالكامل</label>
                     <input
                       type="text"
+                      ref={nameFieldRef}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      onBlur={() => markTouched("name")}
+                      onBlur={() => { markTouched("name"); moveToNextField("name"); }}
                       className={`w-full px-4 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${shouldShowError("name") ? "border-red-500/70" : ""}`}
                       style={{ backgroundColor: DARK_CARD, borderColor: shouldShowError("name") ? "#EF4444" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
                       placeholder="اكتب اسمك"
@@ -536,13 +567,18 @@ export default function Home() {
                       <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                       <input
                         type="tel"
+                        ref={phoneFieldRef}
                         dir="ltr"
                         value={formData.phone}
                         onChange={(e) => {
-                          setFormData({ ...formData, phone: e.target.value });
+                          const nextPhone = e.target.value;
+                          setFormData({ ...formData, phone: nextPhone });
                           setTouched((current) => ({ ...current, phone: true }));
+                          if (isEgyptianWhatsAppFormatValid(nextPhone)) {
+                            window.requestAnimationFrame(() => emailFieldRef.current?.focus());
+                          }
                         }}
-                        onBlur={() => markTouched("phone")}
+                        onBlur={() => { markTouched("phone"); moveToNextField("phone"); }}
                         className={`w-full px-4 pl-10 py-3.5 rounded-xl border outline-none transition-all text-white focus:ring-2 ${phoneHasValue && !isPhoneFormatValid ? "border-red-500/70" : phoneHasValue ? "border-emerald-500/70" : ""}`}
                         style={{ backgroundColor: DARK_CARD, borderColor: phoneHasValue && !isPhoneFormatValid ? "#EF4444" : phoneHasValue ? "#10B981" : "rgba(255,255,255,0.1)", outlineColor: ORANGE }}
                         placeholder="01xxxxxxxxx"
@@ -569,6 +605,7 @@ export default function Home() {
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                       <input
                         type="email"
+                        ref={emailFieldRef}
                         dir="ltr"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -788,14 +825,14 @@ export default function Home() {
                       </span>
                     ) : (
                       <>
-                        سجّل وافتح واتساب دلوقتي
+                        سجّل دلوقتي واحجز مكانك
                         <ArrowLeft className="w-5 h-5 mr-2" />
                       </>
                     )}
                   </Button>
 
                   <p className="text-center text-white/30 text-xs">
-                    🔒 بياناتك في أمان تام — بعد التسجيل هتدخل محادثة واتساب مباشرة مع الفريق
+                    بياناتك تستخدم لتأكيد التسجيل وفتح رسالة واتساب جاهزة للتنسيق.
                   </p>
                 </form>
               </Card>
@@ -963,20 +1000,23 @@ export default function Home() {
               <p id="pilot-preview-description" className="text-white/60 text-lg leading-relaxed mb-6">
                 دي معاينة قصيرة من تجربة متدرب بموافقته الصريحة. الهدف إنك تشوف شكل التطبيق والمتابعة، من غير ما نبيع لك وعود أو نتائج مضمونة.
               </p>
-              <a href="#form-section" onClick={handleCampaignCtaClick}>
+              <a href="#form-section" onClick={() => handleCampaignCtaClick("Pilot preview") }>
                 <Button className="text-black font-bold px-6" style={{ backgroundColor: ORANGE }}>
-                  احجز الجزء المفتوح من الويبنار
+                  {WEBINAR_CTA_LABEL}
                 </Button>
               </a>
             </div>
             <div className="order-1 lg:order-2 mx-auto w-full max-w-[360px] rounded-[2rem] overflow-hidden border shadow-2xl" style={{ borderColor: `${ORANGE}55`, backgroundColor: DARK_CARD }}>
               <video
                 src={WEBINAR_PILOT_VIDEO_SRC}
+                poster={WEBINAR_PILOT_POSTER_SRC}
                 controls
                 playsInline
                 preload="metadata"
                 aria-describedby="pilot-preview-description"
                 className="block w-full aspect-[9/16] bg-black"
+                onPlay={() => fbq("trackCustom", "VideoPlay", { content_name: "Webinar trainee experience pilot" })}
+                onEnded={() => fbq("trackCustom", "VideoComplete", { content_name: "Webinar trainee experience pilot" })}
               >
                 متصفحك لا يدعم تشغيل الفيديو.
               </video>
@@ -1056,9 +1096,9 @@ export default function Home() {
 
           {/* CTA after journey */}
           <div className="text-center mt-10">
-            <a href="#form-section" onClick={handleCampaignCtaClick}>
+            <a href="#form-section" onClick={() => handleCampaignCtaClick("Journey") }>
               <Button size="lg" className="text-black text-lg px-8 py-5 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                احجز مكانك في المحاضرة
+                {WEBINAR_CTA_LABEL}
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </a>
@@ -1168,9 +1208,9 @@ export default function Home() {
           </div>
           {/* CTA */}
           <div className="text-center mt-10">
-            <a href="#form-section" onClick={handleCampaignCtaClick}>
+            <a href="#form-section" onClick={() => handleCampaignCtaClick("Audience fit") }>
               <Button size="lg" className="text-black text-lg px-8 py-5 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                احجز مكانك في المحاضرة
+                {WEBINAR_CTA_LABEL}
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
             </a>
@@ -1197,8 +1237,8 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-3 items-center">
                 <Button asChild size="lg" className="group text-black text-lg px-7 py-6 font-bold shadow-xl transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(234,138,30,0.42)] active:translate-y-0 active:scale-[0.97]" style={{ backgroundColor: ORANGE }}>
-                  <a href="#form-section" onClick={handleCampaignCtaClick}>
-                    احجز المحاضرة أولاً
+                  <a href="#form-section" onClick={() => handleCampaignCtaClick("Wholesale platform") }>
+                    {WEBINAR_CTA_LABEL}
                     <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
                   </a>
                 </Button>
@@ -1303,9 +1343,9 @@ export default function Home() {
               التسجيل مجاني. سجّل بياناتك وهتدخل محادثة واتساب مباشرة علشان تكمل الخطوة الجاية.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="#form-section" onClick={handleCampaignCtaClick}>
+              <a href="#form-section" onClick={() => handleCampaignCtaClick("Final CTA") }>
                 <Button size="lg" className="text-black text-lg px-8 py-6 font-bold shadow-xl" style={{ backgroundColor: ORANGE }}>
-                  احجز مكانك الآن
+                  {WEBINAR_CTA_LABEL}
                   <ArrowLeft className="w-5 h-5 mr-2" />
                 </Button>
               </a>

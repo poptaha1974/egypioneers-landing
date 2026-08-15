@@ -20,4 +20,14 @@ describe("تهيئة Meta Pixel", () => {
     expect(html).not.toContain('"ratingCount"');
     expect(html).not.toContain('"ratingValue"');
   });
+
+  it("يحتوي Course JSON-LD على ويبنار أسبوعي صالح بلا Trailing Comma", () => {
+    const html = readFileSync(htmlPath, "utf8");
+    const scripts = [...html.matchAll(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g)];
+    const course = scripts.map((script) => JSON.parse(script[1])).find((data) => data["@type"] === "Course");
+
+    expect(course.name).toContain("ويبنار");
+    expect(course.hasCourseInstance.courseSchedule.byDay).toBe("Wednesday");
+    expect(course.hasCourseInstance.offers.price).toBe("0");
+  });
 });
