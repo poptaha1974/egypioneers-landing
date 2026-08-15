@@ -126,6 +126,7 @@ export default function Home() {
     stage: "",
     readiness: "",
     preference: "",
+    whatsappConsent: false,
   });
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [automationDelivered, setAutomationDelivered] = useState<boolean | null>(null);
@@ -316,7 +317,7 @@ export default function Home() {
   const ALL_FIELDS = ["name", "phone", "email"];
 
   const isFormValid = (): boolean => {
-    return ALL_FIELDS.every((f) => !getFieldError(f));
+    return ALL_FIELDS.every((f) => !getFieldError(f)) && formData.whatsappConsent;
   };
 
   const phoneHasValue = Boolean(formData.phone.trim());
@@ -377,6 +378,7 @@ export default function Home() {
         name: formData.name,
         phone: normalizedPhone,
         email: formData.email,
+        whatsappConsent: formData.whatsappConsent,
       });
       setAutomationDelivered(submission.automationDelivered);
       clearSavedData();
@@ -619,6 +621,26 @@ export default function Home() {
                       <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
                         <AlertCircle className="w-3 h-3" />
                         {getFieldError("email")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-start gap-3 cursor-pointer rounded-xl border p-3.5 transition-colors" style={{ borderColor: formData.whatsappConsent ? `${ORANGE}80` : "rgba(255,255,255,0.12)", backgroundColor: formData.whatsappConsent ? `${ORANGE}10` : DARK_CARD }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.whatsappConsent}
+                        onChange={(event) => setFormData({ ...formData, whatsappConsent: event.target.checked })}
+                        className="mt-1 h-4 w-4 accent-orange-500"
+                      />
+                      <span className="text-sm leading-relaxed text-white/80">
+                        أوافق إن Egy-Pioneers تبعت لي تفاصيل الويبنار والتذكير بالموعد على واتساب. أقدر أطلب إيقاف الرسائل في أي وقت.
+                      </span>
+                    </label>
+                    {showAllErrors && !formData.whatsappConsent && (
+                      <p className="mt-1.5 text-xs flex items-center gap-1" style={{ color: "#F87171" }}>
+                        <AlertCircle className="w-3 h-3" />
+                        اختار موافقتك علشان نقدر نبعت لك تفاصيل الحضور.
                       </p>
                     )}
                   </div>
@@ -927,7 +949,7 @@ export default function Home() {
                     <button
                       onClick={() => {
                         setFormState("idle");
-                        setFormData({ name: "", phone: "", email: "", role: "", challenge: "", stage: "", readiness: "", preference: "" });
+                        setFormData({ name: "", phone: "", email: "", role: "", challenge: "", stage: "", readiness: "", preference: "", whatsappConsent: false });
                         setTouched({});
                         setShowAllErrors(false);
                         window.scrollTo({ top: 0, behavior: "smooth" });

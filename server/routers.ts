@@ -52,6 +52,7 @@ export const appRouter = router({
           stage: z.string().optional(),
           readiness: z.string().optional(),
           preference: z.string().optional(),
+          whatsappConsent: z.boolean().default(false),
         })
       )
       .mutation(async ({ input }) => {
@@ -64,6 +65,8 @@ export const appRouter = router({
           stage: input.stage || null,
           readiness: input.readiness || null,
           preference: input.preference || null,
+          whatsappConsent: input.whatsappConsent ? 1 : 0,
+          whatsappConsentAt: input.whatsappConsent ? new Date() : null,
         });
         const automationDelivered = await deliverAcademyLead({
           name: input.name,

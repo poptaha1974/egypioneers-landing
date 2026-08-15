@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -41,8 +41,33 @@ export const leads = mysqlTable("leads", {
   preference: varchar("preference", { length: 100 }),
   intentScore: int("intentScore"),
   leadStatus: mysqlEnum("leadStatus", ["HOT", "WARM", "COLD"]).default("COLD").notNull(),
+  whatsappConsent: int("whatsappConsent").default(0).notNull(),
+  whatsappConsentAt: timestamp("whatsappConsentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = typeof leads.$inferInsert;
+
+// ======================================================
+// Webinar Message Logs - منع تكرار الرسائل قبل أي إرسال فعلي
+// ======================================================
+export const webinarMessageLogs = mysqlTable("webinarMessageLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  leadId: int("leadId").notNull(),
+  messageType: mysqlEnum("messageType", ["welcome", "reminder_24h", "reminder_3h"]).notNull(),
+  webinarStartAt: timestamp("webinarStartAt").notNull(),
+  status: mysqlEnum("status", ["queued", "sent", "failed", "skipped"]).default("queued").notNull(),
+  providerMessageId: varchar("providerMessageId", { length: 255 }),
+  errorMessage: text("errorMessage"),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  uniqueLeadMessageForWebinar: uniqueIndex("webinar_message_log_delivery_unique").on(
+    table.leadId,
+    table.messageType,
+    table.webinarStartAt,
+  ),
+}));
+
+export type WebinarMessageLog = typeof webinarMessageLogs.$inferSelect;

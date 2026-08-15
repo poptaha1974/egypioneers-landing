@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
-import { TRPCError } from "@trpc/server";
 
-// Mock the database module
 vi.mock("./db", () => ({
   createLead: vi.fn().mockResolvedValue({ id: 1, intentScore: 75, leadStatus: "HOT" }),
   getAllLeads: vi.fn().mockResolvedValue([]),
@@ -16,7 +14,6 @@ vi.mock("./academyLeadDelivery", () => ({
   deliverAcademyLead: vi.fn().mockResolvedValue(true),
 }));
 
-// Create a caller with mock context (public, no auth)
 function createPublicCaller() {
   return appRouter.createCaller({
     user: null,
@@ -45,6 +42,7 @@ describe("Leads tRPC Router - Integration Tests", () => {
         stage: "شغّال ومحتاج أطوّر",
         readiness: "جاهز أبدأ دلوقتي",
         preference: "أونلاين",
+        whatsappConsent: true,
       });
 
       expect(createLead).toHaveBeenCalledWith({
@@ -56,8 +54,9 @@ describe("Leads tRPC Router - Integration Tests", () => {
         stage: "شغّال ومحتاج أطوّر",
         readiness: "جاهز أبدأ دلوقتي",
         preference: "أونلاين",
+        whatsappConsent: 1,
+        whatsappConsentAt: expect.any(Date),
       });
-
       expect(deliverAcademyLead).toHaveBeenCalledWith({
         name: "أحمد محمد",
         phone: "01012345678",
@@ -88,6 +87,8 @@ describe("Leads tRPC Router - Integration Tests", () => {
         stage: null,
         readiness: null,
         preference: null,
+        whatsappConsent: 0,
+        whatsappConsentAt: null,
       });
     });
 
@@ -104,40 +105,39 @@ describe("Leads tRPC Router - Integration Tests", () => {
 
       expect(result).toMatchObject({ id: 1, automationDelivered: false });
     });
+
+    it("يحفظ عدم الموافقة صراحة عندما لا يطلب الزائر رسائل واتساب", async () => {
+      const { createLead } = await import("./db");
+      const caller = createPublicCaller();
+
+      await caller.leads.submit({
+        name: "ليلى",
+        phone: "01012345678",
+        email: "laila@example.com",
+        whatsappConsent: false,
+      });
+
+      expect(createLead).toHaveBeenCalledWith(expect.objectContaining({
+        whatsappConsent: 0,
+        whatsappConsentAt: null,
+      }));
+    });
   });
 
   describe("leads.submit - invalid input (validation errors)", () => {
     it("should reject short name (< 2 chars)", async () => {
       const caller = createPublicCaller();
-      await expect(
-        caller.leads.submit({
-          name: "أ",
-          phone: "01012345678",
-          email: "test@test.com",
-        })
-      ).rejects.toThrow();
+      await expect(caller.leads.submit({ name: "أ", phone: "01012345678", email: "test@test.com" })).rejects.toThrow();
     });
 
     it("should reject invalid email", async () => {
       const caller = createPublicCaller();
-      await expect(
-        caller.leads.submit({
-          name: "أحمد",
-          phone: "01012345678",
-          email: "not-an-email",
-        })
-      ).rejects.toThrow();
+      await expect(caller.leads.submit({ name: "أحمد", phone: "01012345678", email: "not-an-email" })).rejects.toThrow();
     });
 
     it("should reject short phone (< 10 chars)", async () => {
       const caller = createPublicCaller();
-      await expect(
-        caller.leads.submit({
-          name: "أحمد",
-          phone: "0101",
-          email: "test@test.com",
-        })
-      ).rejects.toThrow();
+      await expect(caller.leads.submit({ name: "أحمد", phone: "0101", email: "test@test.com" })).rejects.toThrow();
     });
   });
 
@@ -145,15 +145,13 @@ describe("Leads tRPC Router - Integration Tests", () => {
     it("should propagate error when createLead throws", async () => {
       const { createLead } = await import("./db");
       (createLead as any).mockRejectedValueOnce(new Error("Database not available"));
-
       const caller = createPublicCaller();
-      await expect(
-        caller.leads.submit({
-          name: "أحمد",
-          phone: "01012345678",
-          email: "test@test.com",
-        })
-      ).rejects.toThrow("Database not available");
+
+      await expect(caller.leads.submit({
+        name: "أحمد",
+        phone: "01012345678",
+        email: "test@test.com",
+      })).rejects.toThrow("Database not available");
     });
   });
 });
