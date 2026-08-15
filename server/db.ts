@@ -1,7 +1,19 @@
-import { eq, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, leads, InsertLead, Lead } from "../drizzle/schema";
+import {
+  InsertUser,
+  users,
+  leads,
+  InsertLead,
+  Lead,
+  webinarMessageLogs,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
+import {
+  getWebinarQueueSkipReason,
+  type QueueWebinarMessageInput,
+  type QueueWebinarMessageResult,
+} from "./webinarMessageQueue";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -161,4 +173,67 @@ export async function getLeadsByStatus(status: "HOT" | "WARM" | "COLD"): Promise
   const db = await getDb();
   if (!db) return [];
   return db.select().from(leads).where(eq(leads.leadStatus, status)).orderBy(desc(leads.createdAt));
+}
+
+export async function markLeadWhatsAppOptOut(leadId: number, optedOutAt = new Date()): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .update(leads)
+    .set({ whatsappOptedOutAt: optedOutAt })
+    .where(eq(leads.id, leadId));
+
+  return Number(result[0].affectedRows) > 0;
+}
+
+function isDuplicateMessageLogError(error: unknown): boolean {
+  return error instanceof Error && /duplicate entry|webinar_message_log_delivery_unique/i.test(error.message);
+}
+
+/**
+ * This is a database-only queue gate. It never invokes n8n, FunnelFast, or WhatsApp.
+ * The unique DB index provides the final race-safe duplicate check.
+ */
+export async function queueWebinarMessageForReview(
+  input: QueueWebinarMessageInput,
+): Promise<QueueWebinarMessageResult> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const lead = (await db.select().from(leads).where(eq(leads.id, input.leadId)).limit(1))[0];
+  const existingLog = lead
+    ? (await db
+        .select({ id: webinarMessageLogs.id })
+        .from(webinarMessageLogs)
+        .where(and(
+          eq(webinarMessageLogs.leadId, input.leadId),
+          eq(webinarMessageLogs.messageType, input.messageType),
+          eq(webinarMessageLogs.webinarStartAt, input.webinarStartAt),
+        ))
+        .limit(1))[0]
+    : undefined;
+
+  const skipReason = getWebinarQueueSkipReason({
+    leadExists: Boolean(lead),
+    whatsappConsent: lead?.whatsappConsent ?? 0,
+    whatsappOptedOutAt: lead?.whatsappOptedOutAt ?? null,
+    alreadyLogged: Boolean(existingLog),
+  });
+  if (skipReason) return { status: "skipped", reason: skipReason };
+
+  try {
+    const result = await db.insert(webinarMessageLogs).values({
+      leadId: input.leadId,
+      messageType: input.messageType,
+      webinarStartAt: input.webinarStartAt,
+      status: "queued",
+    });
+    return { status: "queued", messageLogId: Number(result[0].insertId) };
+  } catch (error) {
+    if (isDuplicateMessageLogError(error)) {
+      return { status: "skipped", reason: "duplicate_prevented" };
+    }
+    throw error;
+  }
 }

@@ -99,6 +99,12 @@ n8n Draft → FunnelFast WhatsApp template
 
 سيحتاج التنفيذ موافقة منفصلة ومحددة على ثلاثة تغييرات فقط: إضافة حقل حالة إلغاء الاشتراك في قاعدة بيانات الأكاديمية، إنشاء Endpoint داخلي موثق لاصطفاف الرسالة وتحديث سجلها، وربط مسودة n8n بـFunnelFast بعد التحقق من طريقة إرسال القالب المعتمدة في الحساب. لا يشمل ذلك أي تعديل في Meta Pixel أو AllHomz أو إعلان قائم.
 
+## ما نُفذ في الدفعة الآمنة الأولى
+
+تمت إضافة `whatsappOptedOutAt` إلى بيانات Lead عبر Migration غير هدّام، وإضافة بوابة خادمية إدارية `webinarMessages.queueForReview`. تفحص البوابة وجود الـLead، والموافقة الصريحة، وعدم إلغاء الاشتراك، وغياب سجل سابق لنفس نوع الرسالة ونفس موعد الويبنار؛ ثم تسجل قرار `queued` أو `skipped` فقط. كما أضيف إجراء إداري لتسجيل الإلغاء.
+
+لا تستدعي هذه البوابة n8n أو FunnelFast أو WhatsApp، ولا تسلم أي محتوى خارج قاعدة بيانات الأكاديمية. يحمي المفتاح الفريد داخل `webinarMessageLogs` من سباق إعادة المحاولة بحيث يتحول أي طلب مكرر إلى `duplicate_prevented` بدلاً من رسالة ثانية. اجتازت الاختبارات **43/43** بعد التنفيذ.
+
 ## المراجع
 
 [1]: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/overview "Meta — WhatsApp Business Platform Webhooks"

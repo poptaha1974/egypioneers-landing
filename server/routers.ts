@@ -2,8 +2,15 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createLead, getAllLeads, getLeadsByStatus } from "./db";
+import {
+  createLead,
+  getAllLeads,
+  getLeadsByStatus,
+  markLeadWhatsAppOptOut,
+  queueWebinarMessageForReview,
+} from "./db";
 import { deliverAcademyLead } from "./academyLeadDelivery";
+import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -86,6 +93,29 @@ export const appRouter = router({
       .input(z.object({ status: z.enum(["HOT", "WARM", "COLD"]) }))
       .query(async ({ input }) => {
         return getLeadsByStatus(input.status);
+    }),
+  }),
+
+  // Admin-only safety gate. This records queue decisions but never delivers WhatsApp messages.
+  webinarMessages: router({
+    queueForReview: adminProcedure
+      .input(z.object({
+        leadId: z.number().int().positive(),
+        messageType: z.enum(WEBINAR_MESSAGE_TYPES),
+        webinarStartAt: z.coerce.date(),
+      }))
+      .mutation(async ({ input }) => {
+        return queueWebinarMessageForReview(input);
+      }),
+
+    recordOptOut: adminProcedure
+      .input(z.object({ leadId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const updated = await markLeadWhatsAppOptOut(input.leadId);
+        if (!updated) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+        }
+        return { status: "recorded" as const };
       }),
   }),
 });

@@ -43,6 +43,7 @@ export const leads = mysqlTable("leads", {
   leadStatus: mysqlEnum("leadStatus", ["HOT", "WARM", "COLD"]).default("COLD").notNull(),
   whatsappConsent: int("whatsappConsent").default(0).notNull(),
   whatsappConsentAt: timestamp("whatsappConsentAt"),
+  whatsappOptedOutAt: timestamp("whatsappOptedOutAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
