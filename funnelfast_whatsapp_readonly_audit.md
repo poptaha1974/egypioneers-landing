@@ -67,6 +67,10 @@
 
 تمت مراجعة تبويب `Flows` في إعداد WhatsApp داخل FunnelFast، وظهر به **0 Flows**. لم نُنشئ Flow، ولم نفعّل Automation، ولم نضغط إعداد التحقق في Meta Business Verification. تظل مسودة n8n مستقلة وغير منشورة، ولا تُرسل رسالة حقيقية حتى تحصل على موافقة منفصلة للربط والتشغيل.
 
+## تحديث اعتماد القوالب قبل الاختبار الداخلي
+
+في فحص القراءة بتاريخ 16 أغسطس 2026، ظهرت القوالب الثلاثة بحالة `Active`: `egy_webinar_welcome_ar` و`egy_webinar_reminder_24h_ar` و`egy_webinar_reminder_3h_ar`. الأول والثالث تحت فئة `Utility`، بينما تذكير الـ24 ساعة مصنف `Marketing`. هذا الاعتماد يزيل حاجز القالب فقط؛ ولا ينشئ Trigger أو يرسل أي رسالة تلقائياً.
+
 ## المراجع
 
 [1]: https://help.gohighlevel.com/support/solutions/articles/155000001624-whatsapp-workflow-integration "HighLevel — WhatsApp Workflow Automation"
