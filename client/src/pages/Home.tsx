@@ -66,6 +66,7 @@ const DARK_CARD = "#141414";
 const DARK_SECTION = "#0F0F0F";
 const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;
 const STORE_GUIDE_ICONS = [LogIn, Search, ShoppingCart];
+const WEBINAR_PILOT_VIDEO_SRC = "/manus-storage/egypioneers_webinar_pilot_v2_cairo_d5f14d87.mp4";
 
 // Counter animation hook
 function useCounter(end: number, duration: number = 2000) {
@@ -944,6 +945,42 @@ export default function Home() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Pilot preview - تجربة حقيقية بإذن المتدربين */}
+      <AnimatedSection id="pilot-preview" className="py-16" style={{ backgroundColor: DARK }}>
+        <div className="container">
+          <div className="grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] gap-10 items-center max-w-5xl mx-auto">
+            <div className="order-2 lg:order-1 text-center lg:text-right" style={{ fontFamily: "Cairo, sans-serif" }}>
+              <Badge className="mb-4 border" style={{ backgroundColor: `${ORANGE}15`, color: ORANGE, borderColor: `${ORANGE}35` }}>
+                تجربة تطبيق حقيقية
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                اسمع التجربة قبل ما تقرر
+              </h2>
+              <p id="pilot-preview-description" className="text-white/60 text-lg leading-relaxed mb-6">
+                دي معاينة قصيرة من تجربة متدرب بموافقته الصريحة. الهدف إنك تشوف شكل التطبيق والمتابعة، من غير ما نبيع لك وعود أو نتائج مضمونة.
+              </p>
+              <a href="#form-section" onClick={handleCampaignCtaClick}>
+                <Button className="text-black font-bold px-6" style={{ backgroundColor: ORANGE }}>
+                  احجز الجزء المفتوح من الويبنار
+                </Button>
+              </a>
+            </div>
+            <div className="order-1 lg:order-2 mx-auto w-full max-w-[360px] rounded-[2rem] overflow-hidden border shadow-2xl" style={{ borderColor: `${ORANGE}55`, backgroundColor: DARK_CARD }}>
+              <video
+                src={WEBINAR_PILOT_VIDEO_SRC}
+                controls
+                playsInline
+                preload="metadata"
+                aria-describedby="pilot-preview-description"
+                className="block w-full aspect-[9/16] bg-black"
+              >
+                متصفحك لا يدعم تشغيل الفيديو.
+              </video>
+            </div>
           </div>
         </div>
       </AnimatedSection>
