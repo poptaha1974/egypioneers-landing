@@ -66,7 +66,7 @@ const DARK_CARD = "#141414";
 const DARK_SECTION = "#0F0F0F";
 const POST_SUBMIT_WHATSAPP_REDIRECT_DELAY_MS = 2000;
 const STORE_GUIDE_ICONS = [LogIn, Search, ShoppingCart];
-const WEBINAR_PILOT_VIDEO_SRC = "/manus-storage/egypioneers_webinar_pilot_v2_cairo_d5f14d87.mp4";
+const WEBINAR_PILOT_VIDEO_SRC = "/manus-storage/egypioneers_webinar_pilot_v3_cairo_safe-title_dd1b3f97.mp4";
 
 // Counter animation hook
 function useCounter(end: number, duration: number = 2000) {

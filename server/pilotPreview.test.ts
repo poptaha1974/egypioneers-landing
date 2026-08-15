@@ -9,7 +9,7 @@ describe("معاينة فيديو Pilot", () => {
   it("تعرض فيديو Cairo داخل صفحة الويبنار مع وصف واضح وتجربة تحكم أصلية", () => {
     const home = readFileSync(homePath, "utf8");
 
-    expect(home).toContain("egypioneers_webinar_pilot_v2_cairo_d5f14d87.mp4");
+    expect(home).toContain("egypioneers_webinar_pilot_v3_cairo_safe-title_dd1b3f97.mp4");
     expect(home).toContain('id="pilot-preview"');
     expect(home).toContain("controls");
     expect(home).toContain('fontFamily: "Cairo, sans-serif"');
