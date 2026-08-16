@@ -11,7 +11,10 @@ import {
 } from "./db";
 import { deliverAcademyLead } from "./academyLeadDelivery";
 import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
-import { createQueuedWebinarDraftHandoff } from "./webinarDraftHandoff";
+import {
+  createQueuedWebinarDraftHandoff,
+  deliverQueuedWebinarDraft,
+} from "./webinarDraftHandoff";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -107,9 +110,12 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const queueDecision = await queueWebinarMessageForReview(input);
+        const draftHandoff = createQueuedWebinarDraftHandoff(input, queueDecision);
+        const draftDelivery = await deliverQueuedWebinarDraft(draftHandoff);
         return {
           ...queueDecision,
-          draftHandoff: createQueuedWebinarDraftHandoff(input, queueDecision),
+          draftHandoff,
+          draftDelivery,
         };
       }),
 

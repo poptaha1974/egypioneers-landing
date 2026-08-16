@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createQueuedWebinarDraftHandoff,
+  deliverQueuedWebinarDraft,
+  WEBINAR_N8N_DRAFT_WEBHOOK_URL,
   WEBINAR_N8N_DRAFT_WEBHOOK_PATH,
 } from "./webinarDraftHandoff";
 
@@ -38,5 +40,57 @@ describe("عقد تسليم مسودة n8n للويبنار", () => {
       status: "skipped",
       reason: "missing_consent",
     })).toBeNull();
+  });
+
+  it("يسلّم queued فقط إلى Webhook المسودة بلا أي مزود إرسال", async () => {
+    const request = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const handoff = createQueuedWebinarDraftHandoff(input, {
+      status: "queued",
+      messageLogId: 77,
+      leadName: "إيهاب",
+      leadPhone: "+201005106459",
+    });
+
+    await expect(deliverQueuedWebinarDraft(handoff, request)).resolves.toEqual({
+      attempted: true,
+      delivered: true,
+      status: 200,
+    });
+    expect(request).toHaveBeenCalledWith(WEBINAR_N8N_DRAFT_WEBHOOK_URL, expect.objectContaining({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }));
+  });
+
+  it("لا ينفذ POST عندما يكون القرار skipped", async () => {
+    const request = vi.fn();
+
+    await expect(deliverQueuedWebinarDraft(null, request)).resolves.toEqual({
+      attempted: false,
+      delivered: false,
+      reason: "not_queued",
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("يعيد فشلاً قابلاً للرصد إذا لم تقبل مسودة Webhook الطلب", async () => {
+    const request = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const handoff = createQueuedWebinarDraftHandoff(input, {
+      status: "queued",
+      messageLogId: 77,
+      leadName: "إيهاب",
+      leadPhone: "+201005106459",
+    });
+
+    await expect(deliverQueuedWebinarDraft(handoff, request)).resolves.toEqual({
+      attempted: true,
+      delivered: false,
+      status: 404,
+    });
+    expect(warning).toHaveBeenCalledWith(
+      "[Webinar draft handoff] Webhook delivery failed",
+      { status: 404 },
+    );
   });
 });
