@@ -29,5 +29,10 @@ export type QueueWebinarMessageInput = {
 };
 
 export type QueueWebinarMessageResult =
-  | { status: "queued"; messageLogId: number }
+  | {
+      status: "queued";
+      messageLogId: number;
+      leadName: string;
+      leadPhone: string;
+    }
   | { status: "skipped"; reason: WebinarQueueSkipReason };

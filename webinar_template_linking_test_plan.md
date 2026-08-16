@@ -105,6 +105,12 @@ n8n Draft → FunnelFast WhatsApp template
 
 لا تستدعي هذه البوابة n8n أو FunnelFast أو WhatsApp، ولا تسلم أي محتوى خارج قاعدة بيانات الأكاديمية. يحمي المفتاح الفريد داخل `webinarMessageLogs` من سباق إعادة المحاولة بحيث يتحول أي طلب مكرر إلى `duplicate_prevented` بدلاً من رسالة ثانية. اجتازت الاختبارات **43/43** بعد التنفيذ.
 
+## عقد مسودة n8n بعد الربط
+
+أُضيف عقد بيانات خادمي يحوّل قرار `queued` فقط إلى حمولة موجهة لمسار Webhook الخاص بالمسودة `egy-pioneers-webinar-welcome`. تحتوي الحمولة على `leadId` و`messageLogId` والاسم والرقم ونوع الرسالة وموعد الويبنار، مع `whatsappConsent: true` ووسمين ثابتين: `queued_for_review_no_send` و`requiresServerLogCheck`.
+
+قرارات `skipped` لا تحصل على حمولة إطلاقاً، وبالتالي لا يمكنها الوصول إلى مسودة n8n. الأهم: العقد الحالي **لا ينفذ طلب HTTP ولا يستدعي n8n**؛ هو مجرد سلك بيانات معزول يرجع في مخرجات الإجراء الإداري للمراجعة. اجتازت الاختبارات **45/45**، ومنها اختبار يثبت أن غياب الموافقة لا ينشئ أي حمولة للمسودة.
+
 ## المراجع
 
 [1]: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/overview "Meta — WhatsApp Business Platform Webhooks"

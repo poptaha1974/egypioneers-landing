@@ -229,7 +229,12 @@ export async function queueWebinarMessageForReview(
       webinarStartAt: input.webinarStartAt,
       status: "queued",
     });
-    return { status: "queued", messageLogId: Number(result[0].insertId) };
+    return {
+      status: "queued",
+      messageLogId: Number(result[0].insertId),
+      leadName: lead.name,
+      leadPhone: lead.phone,
+    };
   } catch (error) {
     if (isDuplicateMessageLogError(error)) {
       return { status: "skipped", reason: "duplicate_prevented" };

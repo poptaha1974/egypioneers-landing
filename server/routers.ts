@@ -11,6 +11,7 @@ import {
 } from "./db";
 import { deliverAcademyLead } from "./academyLeadDelivery";
 import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
+import { createQueuedWebinarDraftHandoff } from "./webinarDraftHandoff";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -105,7 +106,11 @@ export const appRouter = router({
         webinarStartAt: z.coerce.date(),
       }))
       .mutation(async ({ input }) => {
-        return queueWebinarMessageForReview(input);
+        const queueDecision = await queueWebinarMessageForReview(input);
+        return {
+          ...queueDecision,
+          draftHandoff: createQueuedWebinarDraftHandoff(input, queueDecision),
+        };
       }),
 
     recordOptOut: adminProcedure
