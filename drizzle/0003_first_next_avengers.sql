@@ -1,0 +1,1 @@
+ALTER TABLE `webinarMessageLogs` MODIFY COLUMN `status` enum('queued','draft_received','sent','failed','skipped') NOT NULL DEFAULT 'queued';

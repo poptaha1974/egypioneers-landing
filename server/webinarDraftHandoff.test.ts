@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createQueuedWebinarDraftHandoff,
   deliverQueuedWebinarDraft,
+  getWebinarDraftLogStatusAction,
   WEBINAR_N8N_DRAFT_WEBHOOK_URL,
   WEBINAR_N8N_DRAFT_WEBHOOK_PATH,
 } from "./webinarDraftHandoff";
@@ -43,7 +44,15 @@ describe("عقد تسليم مسودة n8n للويبنار", () => {
   });
 
   it("يسلّم queued فقط إلى Webhook المسودة بلا أي مزود إرسال", async () => {
-    const request = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        queued: true,
+        messageType: "welcome",
+        delivery: "not_configured",
+      }),
+    });
     const handoff = createQueuedWebinarDraftHandoff(input, {
       status: "queued",
       messageLogId: 77,
@@ -55,6 +64,7 @@ describe("عقد تسليم مسودة n8n للويبنار", () => {
       attempted: true,
       delivered: true,
       status: 200,
+      draftAccepted: true,
     });
     expect(request).toHaveBeenCalledWith(WEBINAR_N8N_DRAFT_WEBHOOK_URL, expect.objectContaining({
       method: "POST",
@@ -92,5 +102,44 @@ describe("عقد تسليم مسودة n8n للويبنار", () => {
       "[Webinar draft handoff] Webhook delivery failed",
       { status: 404 },
     );
+  });
+
+  it("يحوّل السجل إلى draft_received فقط بعد قبول صريح من المسودة", () => {
+    const queued = {
+      status: "queued" as const,
+      messageLogId: 77,
+      leadName: "إيهاب",
+      leadPhone: "+201005106459",
+    };
+
+    expect(getWebinarDraftLogStatusAction(queued, {
+      attempted: true,
+      delivered: true,
+      status: 200,
+      draftAccepted: true,
+    })).toBe("draft_received");
+  });
+
+  it("يبقي السجل دون تغيير عند فشل Webhook أو قرار skipped", () => {
+    const queued = {
+      status: "queued" as const,
+      messageLogId: 77,
+      leadName: "إيهاب",
+      leadPhone: "+201005106459",
+    };
+
+    expect(getWebinarDraftLogStatusAction(queued, {
+      attempted: true,
+      delivered: false,
+      status: 404,
+    })).toBe("unchanged");
+    expect(getWebinarDraftLogStatusAction({
+      status: "skipped",
+      reason: "missing_consent",
+    }, {
+      attempted: false,
+      delivered: false,
+      reason: "not_queued",
+    })).toBe("unchanged");
   });
 });

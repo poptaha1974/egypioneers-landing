@@ -242,3 +242,22 @@ export async function queueWebinarMessageForReview(
     throw error;
   }
 }
+
+/**
+ * يسجل قبول مسودة n8n فقط؛ لا يعني إرسال واتساب ولا حالة تسليم نهائية.
+ * الشرط على queued يمنع تحويل أي سجل أُغلق أو عولج لاحقاً بالخطأ.
+ */
+export async function markWebinarMessageLogDraftReceived(messageLogId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .update(webinarMessageLogs)
+    .set({ status: "draft_received" })
+    .where(and(
+      eq(webinarMessageLogs.id, messageLogId),
+      eq(webinarMessageLogs.status, "queued"),
+    ));
+
+  return Number(result[0].affectedRows) > 0;
+}

@@ -52,11 +52,51 @@ export function createQueuedWebinarDraftHandoff(
   };
 }
 
-type FetchLike = (input: string, init: RequestInit) => Promise<{ ok: boolean; status: number }>;
+type DraftWebhookReceipt = {
+  queued?: boolean;
+  messageType?: string;
+  delivery?: string;
+};
+
+type FetchLike = (input: string, init: RequestInit) => Promise<{
+  ok: boolean;
+  status: number;
+  json?: () => Promise<unknown>;
+}>;
 
 export type WebinarDraftDeliveryResult =
   | { attempted: false; delivered: false; reason: "not_queued" }
-  | { attempted: true; delivered: boolean; status?: number };
+  | { attempted: true; delivered: false; status?: number }
+  | { attempted: true; delivered: true; status: number; draftAccepted: boolean };
+
+export type WebinarDraftLogStatusAction = "draft_received" | "unchanged";
+
+function isDraftWebhookReceipt(value: unknown): value is DraftWebhookReceipt {
+  return typeof value === "object" && value !== null;
+}
+
+async function readDraftWebhookReceipt(response: Awaited<ReturnType<FetchLike>>): Promise<DraftWebhookReceipt | null> {
+  if (!response.json) return null;
+  try {
+    const value = await response.json();
+    return isDraftWebhookReceipt(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * لا يتحول السجل إلى draft_received إلا بعد قبول صريح من مسودة n8n.
+ * هذا لا يعبر عن إرسال أو تسليم واتساب.
+ */
+export function getWebinarDraftLogStatusAction(
+  queueDecision: QueueWebinarMessageResult,
+  delivery: WebinarDraftDeliveryResult,
+): WebinarDraftLogStatusAction {
+  if (queueDecision.status !== "queued") return "unchanged";
+  if (!delivery.delivered || !delivery.draftAccepted) return "unchanged";
+  return "draft_received";
+}
 
 /**
  * ينفذ POST لمسودة n8n فقط عند وجود حمولة queued.
@@ -81,7 +121,9 @@ export async function deliverQueuedWebinarDraft(
       return { attempted: true, delivered: false, status: response.status };
     }
 
-    return { attempted: true, delivered: true, status: response.status };
+    const receipt = await readDraftWebhookReceipt(response);
+    const draftAccepted = receipt?.queued === true && receipt.delivery === "not_configured";
+    return { attempted: true, delivered: true, status: response.status, draftAccepted };
   } catch (error) {
     console.warn("[Webinar draft handoff] Webhook delivery error", error);
     return { attempted: true, delivered: false };

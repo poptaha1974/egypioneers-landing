@@ -7,6 +7,7 @@ import {
   getAllLeads,
   getLeadsByStatus,
   markLeadWhatsAppOptOut,
+  markWebinarMessageLogDraftReceived,
   queueWebinarMessageForReview,
 } from "./db";
 import { deliverAcademyLead } from "./academyLeadDelivery";
@@ -14,6 +15,7 @@ import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
 import {
   createQueuedWebinarDraftHandoff,
   deliverQueuedWebinarDraft,
+  getWebinarDraftLogStatusAction,
 } from "./webinarDraftHandoff";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -112,10 +114,16 @@ export const appRouter = router({
         const queueDecision = await queueWebinarMessageForReview(input);
         const draftHandoff = createQueuedWebinarDraftHandoff(input, queueDecision);
         const draftDelivery = await deliverQueuedWebinarDraft(draftHandoff);
+        const draftLogStatusAction = getWebinarDraftLogStatusAction(queueDecision, draftDelivery);
+        const draftLogUpdated = draftLogStatusAction === "draft_received" && queueDecision.status === "queued"
+          ? await markWebinarMessageLogDraftReceived(queueDecision.messageLogId)
+          : false;
         return {
           ...queueDecision,
           draftHandoff,
           draftDelivery,
+          draftLogStatusAction,
+          draftLogUpdated,
         };
       }),
 

@@ -58,7 +58,7 @@ export const webinarMessageLogs = mysqlTable("webinarMessageLogs", {
   leadId: int("leadId").notNull(),
   messageType: mysqlEnum("messageType", ["welcome", "reminder_24h", "reminder_3h"]).notNull(),
   webinarStartAt: timestamp("webinarStartAt").notNull(),
-  status: mysqlEnum("status", ["queued", "sent", "failed", "skipped"]).default("queued").notNull(),
+  status: mysqlEnum("status", ["queued", "draft_received", "sent", "failed", "skipped"]).default("queued").notNull(),
   providerMessageId: varchar("providerMessageId", { length: 255 }),
   errorMessage: text("errorMessage"),
   sentAt: timestamp("sentAt"),
