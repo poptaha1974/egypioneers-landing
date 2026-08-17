@@ -1,0 +1,10 @@
+{
+  "createdAt": "2026-08-17T06:56:13.144Z",
+  "destination": "https://webinar.popehab.com/",
+  "status": "PAUSED",
+  "campaign": null,
+  "adSet": null,
+  "ads": [],
+  "outcome": "partial_or_failed",
+  "error": "Graph API 400 at /act_1337470373886269/campaigns: Invalid parameter (code=100, subcode=4834011, type=OAuthException)"
+}

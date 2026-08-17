@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-08-17T06:55:24.762Z",
+  "account": {
+    "id": "act_1337470373886269",
+    "name": "Insta ad acc",
+    "accountStatus": 1,
+    "currency": "EGP",
+    "timezone": "Africa/Cairo"
+  },
+  "pages": [
+    {
+      "id": "852717114597902",
+      "name": "Egy - Pioneers Academy",
+      "usedByExistingCreative": true
+    },
+    {
+      "id": "1768648350045696",
+      "name": "Speed Seal Egypt",
+      "usedByExistingCreative": false
+    }
+  ],
+  "existingCreativePageIds": [
+    "374945465707116",
+    "130014510189983",
+    "852717114597902"
+  ],
+  "grantedPermissions": [
+    "catalog_management",
+    "threads_business_basic",
+    "pages_show_list",
+    "ads_management",
+    "ads_read",
+    "business_management",
+    "whatsapp_business_management",
+    "pages_read_engagement",
+    "pages_manage_ads",
+    "whatsapp_business_messaging",
+    "manage_app_solution",
+    "whatsapp_business_manage_events",
+    "public_profile"
+  ],
+  "webinarCampaignCandidates": [
+    {
+      "id": "120251636939930596",
+      "name": "EPA | LEADS | Webinar-Free | Jul-2026",
+      "objective": "OUTCOME_ENGAGEMENT",
+      "status": "PAUSED",
+      "created_time": "2026-08-10T05:33:31+0300",
+      "buying_type": "AUCTION",
+      "special_ad_categories": []
+    }
+  ]
+}
