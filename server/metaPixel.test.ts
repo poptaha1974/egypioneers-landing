@@ -30,4 +30,19 @@ describe("تهيئة Meta Pixel", () => {
     expect(course.hasCourseInstance.courseSchedule.byDay).toBe("Wednesday");
     expect(course.hasCourseInstance.offers.price).toBe("0");
   });
+
+  it("يوجه بيانات المشاركة وهوية الأكاديمية إلى نطاق الويبنار الدائم", () => {
+    const html = readFileSync(htmlPath, "utf8");
+    const scripts = [...html.matchAll(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g)];
+    const organization = scripts
+      .map((script) => JSON.parse(script[1]))
+      .find((data) => data["@type"] === "EducationalOrganization");
+
+    expect(html).toContain('property="og:url" content="https://webinar.popehab.com/"');
+    expect(html).toContain('property="og:image" content="https://webinar.popehab.com/manus-storage/');
+    expect(html).toContain('name="twitter:image" content="https://webinar.popehab.com/manus-storage/');
+    expect(html).not.toContain("egypioneers-836duxqk.manus.space");
+    expect(organization.url).toBe("https://webinar.popehab.com/");
+    expect(organization.logo).toMatch(/^https:\/\/webinar\.popehab\.com\/manus-storage\//);
+  });
 });
