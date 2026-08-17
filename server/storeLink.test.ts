@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   getStoreProgressState,
@@ -42,5 +44,19 @@ describe("رابط منصة منتجات Egy-Pioneers", () => {
       platformOpened: "WholesalePlatformOpen",
       firstStepCompleted: "WholesalePlatformStepOneCompleted",
     });
+  });
+
+  it("يفتح زر التطبيق بعد المحاضرة منصة المنتجات مباشرة في تبويب جديد", () => {
+    const homePageSource = readFileSync(
+      resolve(process.cwd(), "client/src/pages/Home.tsx"),
+      "utf8",
+    );
+    const storeCtaStart = homePageSource.indexOf("شوف اللي هتطبقه بعد المحاضرة");
+    const storeCtaSection = homePageSource.slice(Math.max(0, storeCtaStart - 700), storeCtaStart + 200);
+
+    expect(storeCtaSection).toContain("href={STORE_URL}");
+    expect(storeCtaSection).toContain('target="_blank"');
+    expect(storeCtaSection).toContain("onClick={handleStoreClick}");
+    expect(storeCtaSection).not.toContain("onClick={openStoreGuide}");
   });
 });

@@ -1264,9 +1264,12 @@ export default function Home() {
                     <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-200 group-hover:-translate-x-1" />
                   </a>
                 </Button>
-                <Button type="button" variant="outline" onClick={openStoreGuide} className="group border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08] font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853]/70 hover:shadow-[0_0_24px_rgba(212,168,83,0.2)] active:translate-y-0 active:scale-[0.97]">
-                  <Sparkles className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110" style={{ color: GOLD }} />
-                  شوف اللي هتطبقه بعد المحاضرة
+                <Button asChild variant="outline" className="group border-white/15 bg-white/[0.03] text-white hover:bg-white/[0.08] font-bold transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-1 hover:border-[#D4A853]/70 hover:shadow-[0_0_24px_rgba(212,168,83,0.2)] active:translate-y-0 active:scale-[0.97]">
+                  <a href={STORE_URL} target="_blank" rel="noopener noreferrer" onClick={handleStoreClick}>
+                    <Sparkles className="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110" style={{ color: GOLD }} />
+                    شوف اللي هتطبقه بعد المحاضرة
+                    <ExternalLink className="w-4 h-4 mr-1.5 transition-transform duration-200 group-hover:-translate-x-1" />
+                  </a>
                 </Button>
               </div>
               <p className="text-white/35 text-xs mt-3">هدفنا الأول: تحجز مكانك وتفهم الخطة، وبعدها تختار مرحلة التطبيق المناسبة.</p>
