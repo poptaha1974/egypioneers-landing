@@ -135,7 +135,7 @@
 
 ## 9. الرابط والتتبّع
 
-**وجهة الإعلان:** `https://egypioneers-836duxqk.manus.space/`
+**وجهة الإعلان:** `https://webinar.popehab.com/`
 
 | الإعلان | UTM المقترح |
 |---|---|
@@ -143,6 +143,10 @@
 | C02 | `?utm_source=facebook&utm_medium=paid_social&utm_campaign=epa_webinar_w1&utm_content=c02_supply&utm_term=prospecting_cairo_giza_m25_44` |
 
 **Event التحسين:** `Lead` فقط في الجولة الأولى. نراقب أيضاً `CompleteRegistration` و`CampaignWhatsAppHandoff` من Pixel الأكاديمية، لكن لا ننشئ CAPI جديداً أو Purchase أو event_id جديداً. [4]
+
+### بوابة النطاق والـPixel — مكتملة
+
+تم اعتماد رابط الوجهة الدائم بعد نجاح DNS وHTTPS، وحفظ Lead اختبار، واستجابة Workflow الأكاديمية، وفتح واتساب، ثم Test Events على Pixel Academy `1604627917208516`. أظهر الاختبار `ViewContent` و`CTA_Click` و`FunnelFastRegistrationOpened` من المتصفح بحالة `Processed`، وأظهر `Lead` و`CompleteRegistration` من Conversions API بحالة `Active`، وكلها على `webinar.popehab.com`. لا تم تعديل Pixel أو CAPI أو Token أو Workflow أثناء التحقق. [5]
 
 ## 10. قواعد التشغيل والقرار
 
@@ -171,3 +175,4 @@
 [2]: `two_campaign_v4_1_operating_map.md` و`thinc_webinar_campaign_working_brief.md` — قواعد الفصل، قياس Lead أولاً، وفجوة الحضور/التأهيل/التحول.
 [3]: Meta Ads Manager، قراءة فقط للحساب `act_1337470373886269` خلال 19 مايو–16 أغسطس 2026: تفصيل الحملة السابقة حسب الإعداد، المنطقة، العمر، الجنس، الساعة، والمنصة؛ وتعريفات Meta للمقاييس في جلسة التدقيق.
 [4]: `campaign_launch_validation.md` و`client/src/pages/Home.tsx` — أحداث الصفحة وسلامة مسار التسجيل وPixel Academy.
+[5]: لقطات Test Events التي وفرها المستخدم في 17 أغسطس 2026، وملخص الدليل المثبت في `domain_connection_run_log.md`.
