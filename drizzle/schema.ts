@@ -51,6 +51,33 @@ export type Lead = typeof leads.$inferSelect;
 export type InsertLead = typeof leads.$inferInsert;
 
 // ======================================================
+// Purchases - سجل الدفع المؤكد فقط؛ لا يُنشأ من زر أو صفحة نجاح.
+// ======================================================
+export const purchases = mysqlTable("purchases", {
+  id: int("id").autoincrement().primaryKey(),
+  provider: varchar("provider", { length: 64 }).notNull(),
+  providerTransactionId: varchar("providerTransactionId", { length: 255 }).notNull(),
+  leadId: int("leadId"),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  amountMinor: int("amountMinor").notNull(),
+  currency: varchar("currency", { length: 12 }).notNull(),
+  paymentStatus: mysqlEnum("paymentStatus", ["paid", "refunded", "failed"]).notNull(),
+  eventId: varchar("eventId", { length: 160 }).notNull(),
+  eventSourceUrl: text("eventSourceUrl"),
+  capiDeliveredAt: timestamp("capiDeliveredAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  uniqueProviderTransaction: uniqueIndex("purchases_provider_transaction_unique").on(
+    table.provider,
+    table.providerTransactionId,
+  ),
+}));
+
+export type Purchase = typeof purchases.$inferSelect;
+export type InsertPurchase = typeof purchases.$inferInsert;
+
+// ======================================================
 // Webinar Message Logs - منع تكرار الرسائل قبل أي إرسال فعلي
 // ======================================================
 export const webinarMessageLogs = mysqlTable("webinarMessageLogs", {

@@ -49,6 +49,7 @@ import {
   LogIn,
   Sparkles,
   Clock3,
+  LoaderCircle,
 } from "lucide-react";
 
 // ======================================================
@@ -131,6 +132,7 @@ export default function Home() {
   });
   const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [automationDelivered, setAutomationDelivered] = useState<boolean | null>(null);
+  const [submissionMessage, setSubmissionMessage] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showAllErrors, setShowAllErrors] = useState(false);
@@ -364,6 +366,7 @@ export default function Home() {
 
   const confirmAndSubmit = async () => {
     setFormState("submitting");
+    setSubmissionMessage("بنراجع بياناتك وبنثبت تسجيلك بأمان...");
     const normalizedPhone = normalizeEgyptianWhatsApp(formData.phone);
 
     if (!normalizedPhone) {
@@ -388,6 +391,7 @@ export default function Home() {
         fbclid: metaAttribution.fbclid,
         fbp: metaAttribution.fbp,
       });
+      setSubmissionMessage("تم حفظ التسجيل — بنجهز لك خطوة واتساب التالية...");
       setAutomationDelivered(submission.automationDelivered);
       clearSavedData();
       fbq("track", "CompleteRegistration", {
@@ -409,6 +413,7 @@ export default function Home() {
       }
     } catch {
       setFormState("error");
+      setSubmissionMessage("");
     }
   };
 
@@ -838,6 +843,27 @@ export default function Home() {
                     </div>
                   )}
 
+                  {formState === "submitting" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border p-4"
+                      style={{ backgroundColor: `${ORANGE}12`, borderColor: `${ORANGE}45` }}
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${ORANGE}24` }}>
+                          <LoaderCircle className="w-5 h-5 animate-spin" style={{ color: ORANGE }} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm">لحظة واحدة، تسجيلك شغال الآن</p>
+                          <p className="text-white/60 text-xs mt-1">{submissionMessage}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <Button
                     type="submit"
                     size="lg"
@@ -847,11 +873,8 @@ export default function Home() {
                   >
                     {formState === "submitting" ? (
                       <span className="flex items-center justify-center gap-3">
-                        <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                        </svg>
-                        <span>بنبعت بياناتك... استنى ثواني</span>
+                        <LoaderCircle className="animate-spin w-5 h-5" />
+                        <span>بنثبت تسجيلك... متقفلش الصفحة</span>
                       </span>
                     ) : (
                       <>
@@ -868,7 +891,7 @@ export default function Home() {
               </Card>
             ) : (
               /* Success State - Enhanced with Confetti */
-              <Card className="p-8 md:p-10 shadow-2xl border text-center relative overflow-hidden" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }}>
+              <Card className="p-8 md:p-10 shadow-2xl border text-center relative overflow-hidden" style={{ backgroundColor: DARK_SECTION, borderColor: `${ORANGE}30` }} role="status" aria-live="polite">
                 {/* Confetti Particles */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                   {Array.from({ length: 30 }).map((_, i) => (
