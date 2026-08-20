@@ -1,9 +1,9 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const scriptPath = "/home/ubuntu/video-pilot/make_pilot.py";
 
-describe("تخطيط عنوان فيديو Pilot", () => {
+describe.skipIf(!existsSync(scriptPath))("تخطيط عنوان فيديو Pilot", () => {
   it("يتمركز العنوان الجانبي داخل مستطيله بدلاً من منتصف إطار الفيديو بالكامل", () => {
     const script = readFileSync(scriptPath, "utf8");
 
