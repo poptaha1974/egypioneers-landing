@@ -4,6 +4,10 @@ export type AcademyLeadDeliveryPayload = {
   name: string;
   phone: string;
   email: string;
+  event_id?: string;
+  event_source_url?: string;
+  fbclid?: string;
+  fbp?: string;
 };
 
 type FetchLike = (input: string, init: RequestInit) => Promise<{ ok: boolean; status: number }>;

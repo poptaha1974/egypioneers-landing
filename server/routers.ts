@@ -66,6 +66,10 @@ export const appRouter = router({
           readiness: z.string().optional(),
           preference: z.string().optional(),
           whatsappConsent: z.boolean().default(false),
+          eventId: z.string().min(12).max(160).optional(),
+          eventSourceUrl: z.string().url().max(2048).optional(),
+          fbclid: z.string().min(1).max(512).optional(),
+          fbp: z.string().min(1).max(512).optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -85,6 +89,10 @@ export const appRouter = router({
           name: input.name,
           phone: input.phone,
           email: input.email,
+          event_id: input.eventId,
+          event_source_url: input.eventSourceUrl,
+          fbclid: input.fbclid,
+          fbp: input.fbp,
         });
         return { ...result, automationDelivered };
       }),

@@ -5,6 +5,10 @@ const payload = {
   name: "أحمد محمد",
   phone: "01012345678",
   email: "ahmed@example.com",
+  event_id: "lead_1724110000000_abc123def456",
+  event_source_url: "https://webinar.popehab.com/?fbclid=IwZXh0bgNhZW0CMTEAAR0_test",
+  fbclid: "IwZXh0bgNhZW0CMTEAAR0_test",
+  fbp: "fb.1.1724110000000.123456789",
 };
 
 describe("تسليم تسجيل الأكاديمية إلى الأتمتة", () => {
@@ -17,6 +21,13 @@ describe("تسليم تسجيل الأكاديمية إلى الأتمتة", () 
 
     await expect(deliverAcademyLead(payload, request)).resolves.toBe(true);
     expect(request).toHaveBeenCalledOnce();
+    expect(request).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: JSON.stringify(payload),
+        method: "POST",
+      }),
+    );
   });
 
   it("يعيد فشلاً قابلاً للرصد عند استجابة webhook غير ناجحة", async () => {

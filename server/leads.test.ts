@@ -43,6 +43,10 @@ describe("Leads tRPC Router - Integration Tests", () => {
         readiness: "جاهز أبدأ دلوقتي",
         preference: "أونلاين",
         whatsappConsent: true,
+        eventId: "lead_1724110000000_abc123def456",
+        eventSourceUrl: "https://webinar.popehab.com/?fbclid=IwZXh0bgNhZW0CMTEAAR0_test",
+        fbclid: "IwZXh0bgNhZW0CMTEAAR0_test",
+        fbp: "fb.1.1724110000000.123456789",
       });
 
       expect(createLead).toHaveBeenCalledWith({
@@ -61,6 +65,10 @@ describe("Leads tRPC Router - Integration Tests", () => {
         name: "أحمد محمد",
         phone: "01012345678",
         email: "ahmed@test.com",
+        event_id: "lead_1724110000000_abc123def456",
+        event_source_url: "https://webinar.popehab.com/?fbclid=IwZXh0bgNhZW0CMTEAAR0_test",
+        fbclid: "IwZXh0bgNhZW0CMTEAAR0_test",
+        fbp: "fb.1.1724110000000.123456789",
       });
       expect((createLead as any).mock.invocationCallOrder[0]).toBeLessThan(
         (deliverAcademyLead as any).mock.invocationCallOrder[0],

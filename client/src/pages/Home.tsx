@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { captureMetaLeadAttribution } from "@/lib/campaignDelivery";
 import { getCampaignWhatsAppUrl, getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
 import { FUNNELFAST_PIXEL_EVENTS, getCampaignRegistrationErrors, isEgyptianWhatsAppFormatValid, normalizeEgyptianWhatsApp } from "@/lib/campaignRegistration";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
@@ -373,12 +374,19 @@ export default function Home() {
     }
 
     try {
+      // معرّف واحد مشترك بين Browser Pixel وCAPI لمنع التعداد المزدوج.
+      const metaAttribution = captureMetaLeadAttribution();
+
       // 1. حفظ في الـDatabase وتسليم التسجيل لخدمة الأتمتة من الخادم.
       const submission = await submitMutation.mutateAsync({
         name: formData.name,
         phone: normalizedPhone,
         email: formData.email,
         whatsappConsent: formData.whatsappConsent,
+        eventId: metaAttribution.eventId,
+        eventSourceUrl: metaAttribution.eventSourceUrl,
+        fbclid: metaAttribution.fbclid,
+        fbp: metaAttribution.fbp,
       });
       setAutomationDelivered(submission.automationDelivered);
       clearSavedData();
@@ -390,7 +398,7 @@ export default function Home() {
       fbq("track", FUNNELFAST_PIXEL_EVENTS.lead, {
         content_name: "EgyPioneers Wednesday Webinar Registration",
         content_category: "FunnelFast-Compatible Registration",
-      });
+      }, { eventID: metaAttribution.eventId });
       fbq("track", FUNNELFAST_PIXEL_EVENTS.contact, { content_name: "Campaign WhatsApp Handoff" });
       fbq("trackCustom", FUNNELFAST_PIXEL_EVENTS.whatsappHandoff, { content_name: "Campaign WhatsApp Handoff" });
       setFormState("success");
