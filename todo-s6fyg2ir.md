@@ -6,6 +6,9 @@
 - [x] توليد event_id ثابت في المتصفح وتمريره إلى n8n لتوحيد Browser Pixel وCAPI.
 - [x] تحديث اختبارات Vitest لمسار التسجيل ومعرّفات Meta.
 - [x] اختبار TypeScript واختبارات Vitest لمعّرّفات Meta ومسار التسليم.
-- [ ] تنفيذ تسجيل اختبار حي بمعرّفات fbclid و_fbp والتحقق من payload داخل n8n.
-- [ ] إعداد Prompt تسليم كامل لـComputer (Perplexity).
+- [x] تنفيذ تسجيل اختبار حي بمعرّف event_id وfbp والتحقق من payload داخل n8n.
+- [x] التحقق من قبول Meta CAPI للـpayload بعد تصحيح صيغة fbc وfbp في اختبار مباشر.
+- [x] تنفيذ تسجيل حي من واجهة الإنتاج مع fbclid محفوظ فعلياً والتحقق من وصوله إلى n8n.
+- [x] تأكيد أن اختبار واجهة الإنتاج مع fbclid يقبله Meta CAPI بـ events_received: 1.
+- [x] إعداد Prompt تسليم كامل لـComputer (Perplexity).
 - [ ] حفظ Checkpoint منشور بعد تحقق الإصلاحات.
