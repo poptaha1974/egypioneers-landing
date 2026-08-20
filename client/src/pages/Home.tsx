@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { captureMetaLeadAttribution } from "@/lib/campaignDelivery";
 import { getCampaignWhatsAppUrl, getPostSubmitWhatsAppUrl, WHATSAPP_URL } from "@/lib/leadHandoff";
 import { FUNNELFAST_PIXEL_EVENTS, getCampaignRegistrationErrors, isEgyptianWhatsAppFormatValid, normalizeEgyptianWhatsApp } from "@/lib/campaignRegistration";
+import { getVisitorEngagementSessionId, type EngagementEventName } from "@/lib/engagementTracking";
 import { getStoreProgressState, STORE_ONBOARDING_STEPS, STORE_TRACKING_EVENTS, STORE_URL } from "@/lib/storeLink";
 import { LeadSuccessHandoff } from "@/components/LeadSuccessHandoff";
 import { PostSubmitWhatsAppAction } from "@/components/PostSubmitWhatsAppAction";
@@ -98,10 +99,11 @@ function useCounter(end: number, duration: number = 2000) {
 }
 
 // Section wrapper with fade-in animation
-function AnimatedSection({ children, className = "", delay = 0, id, style }: { children: React.ReactNode; className?: string; delay?: number; id?: string; style?: React.CSSProperties }) {
+function AnimatedSection({ children, className = "", delay = 0, id, engagementId, style }: { children: React.ReactNode; className?: string; delay?: number; id?: string; engagementId?: string; style?: React.CSSProperties }) {
   return (
     <motion.section
       id={id}
+      data-engagement-section={engagementId}
       style={style}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -138,6 +140,7 @@ export default function Home() {
   const [showAllErrors, setShowAllErrors] = useState(false);
   const [showStoreGuide, setShowStoreGuide] = useState(false);
   const [completedStoreSteps, setCompletedStoreSteps] = useState(0);
+  const observedEngagement = useRef(new Set<string>());
   const nameFieldRef = useRef<HTMLInputElement>(null);
   const phoneFieldRef = useRef<HTMLInputElement>(null);
   const emailFieldRef = useRef<HTMLInputElement>(null);
@@ -149,9 +152,38 @@ export default function Home() {
     }
   };
 
+  const engagementMutation = trpc.engagement.track.useMutation();
+  const trackEngagement = useCallback((eventName: EngagementEventName, target: string, detail?: string) => {
+    const eventKey = `${eventName}:${target}`;
+    if (observedEngagement.current.has(eventKey)) return;
+    observedEngagement.current.add(eventKey);
+    engagementMutation.mutate({
+      sessionId: getVisitorEngagementSessionId(),
+      eventName,
+      target,
+      detail,
+    });
+  }, [engagementMutation]);
+
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-engagement-section]"));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          const target = entry.target.getAttribute("data-engagement-section");
+          if (target) trackEngagement("section_viewed", target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [trackEngagement]);
+
   // أحداث بداية التسجيل: مرة واحدة عند أول تفاعل
   const hasTrackedViewContent = useRef(false);
   const handleFormInteraction = () => {
+    trackEngagement("form_started", "registration_form");
     if (!hasTrackedViewContent.current) {
       hasTrackedViewContent.current = true;
       fbq("track", FUNNELFAST_PIXEL_EVENTS.viewContent, { content_name: "EgyPioneers Wednesday Webinar Registration" });
@@ -163,6 +195,7 @@ export default function Home() {
   const handleCampaignCtaClick = (placement: string | unknown = "Website CTA") => {
     const resolvedPlacement = typeof placement === "string" ? placement : "Website CTA";
     handleFormInteraction();
+    trackEngagement("cta_clicked", resolvedPlacement, WEBINAR_CTA_LABEL);
     fbq("trackCustom", "CTA_Click", { content_name: WEBINAR_CTA_LABEL, placement: resolvedPlacement });
   };
 
@@ -175,6 +208,7 @@ export default function Home() {
   };
 
   const handleStoreClick = () => {
+    trackEngagement("cta_clicked", "wholesale_platform", "store_platform_opened");
     fbq("trackCustom", STORE_TRACKING_EVENTS.platformOpened, {
       content_name: "Egy-Pioneers Wholesale Platform",
       destination: STORE_URL,
@@ -364,6 +398,12 @@ export default function Home() {
 
   const submitMutation = trpc.leads.submit.useMutation();
 
+  const handleFaqToggle = (index: number, question: string) => {
+    const opening = openFaq !== index;
+    setOpenFaq(opening ? index : null);
+    if (opening) trackEngagement("faq_opened", `faq_${index + 1}`, question);
+  };
+
   const confirmAndSubmit = async () => {
     setFormState("submitting");
     setSubmissionMessage("بنراجع بياناتك وبنثبت تسجيلك بأمان...");
@@ -390,6 +430,7 @@ export default function Home() {
         eventSourceUrl: metaAttribution.eventSourceUrl,
         fbclid: metaAttribution.fbclid,
         fbp: metaAttribution.fbp,
+        visitorSessionId: getVisitorEngagementSessionId(),
       });
       setSubmissionMessage("تم حفظ التسجيل — بنجهز لك خطوة واتساب التالية...");
       setAutomationDelivered(submission.automationDelivered);
@@ -442,7 +483,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section - يجيب على سؤال "أنا هستفيد إيه عملياً؟" */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+      <section data-engagement-section="hero_offer" className="relative min-h-[85vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/manus-storage/egypioneers-banner_6cce498a.png"
@@ -517,7 +558,7 @@ export default function Home() {
       </section>
 
       {/* Lead Qualification Form - فوق الـ fold بعد أول section قوي */}
-      <AnimatedSection className="py-16" id="form-section" style={{ backgroundColor: DARK_CARD }}>
+      <AnimatedSection className="py-16" id="form-section" engagementId="registration_form" style={{ backgroundColor: DARK_CARD }}>
         <div className="container">
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-8">
@@ -999,7 +1040,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Webinar Open Segment - محتوى موثق بديل عن آراء غير متاحة */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
+      <AnimatedSection className="py-16" engagementId="open_webinar_content" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <Badge className="mb-4 border" style={{ backgroundColor: `${ORANGE}15`, color: ORANGE, borderColor: `${ORANGE}35` }}>
@@ -1040,7 +1081,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Pilot preview - تجربة حقيقية بإذن المتدربين */}
-      <AnimatedSection id="pilot-preview" className="py-16" style={{ backgroundColor: DARK }}>
+      <AnimatedSection id="pilot-preview" engagementId="pilot_video" className="py-16" style={{ backgroundColor: DARK }}>
         <div className="container">
           <div className="grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] gap-10 items-center max-w-5xl mx-auto">
             <div className="order-2 lg:order-1 text-center lg:text-right" style={{ fontFamily: "Cairo, sans-serif" }}>
@@ -1068,8 +1109,14 @@ export default function Home() {
                 preload="metadata"
                 aria-describedby="pilot-preview-description"
                 className="block w-full aspect-[9/16] bg-black"
-                onPlay={() => fbq("trackCustom", "VideoPlay", { content_name: "Webinar trainee experience pilot" })}
-                onEnded={() => fbq("trackCustom", "VideoComplete", { content_name: "Webinar trainee experience pilot" })}
+                onPlay={() => {
+                  fbq("trackCustom", "VideoPlay", { content_name: "Webinar trainee experience pilot" });
+                  trackEngagement("video_started", "pilot_video");
+                }}
+                onEnded={() => {
+                  fbq("trackCustom", "VideoComplete", { content_name: "Webinar trainee experience pilot" });
+                  trackEngagement("video_completed", "pilot_video");
+                }}
               >
                 متصفحك لا يدعم تشغيل الفيديو.
               </video>
@@ -1079,7 +1126,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Webinar Facts Section */}
-      <section className="py-10 border-y" style={{ backgroundColor: DARK, borderColor: "rgba(234,138,30,0.1)" }}>
+      <section data-engagement-section="webinar_facts" className="py-10 border-y" style={{ backgroundColor: DARK, borderColor: "rgba(234,138,30,0.1)" }}>
         <div className="container">
           <div className="grid grid-cols-3 gap-8">
             <div className="text-center">
@@ -1099,7 +1146,7 @@ export default function Home() {
       </section>
 
       {/* How It Works - "أنت هنا → الخطوة الجاية → النتيجة" */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
+      <AnimatedSection className="py-16" engagementId="webinar_roadmap" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
@@ -1160,7 +1207,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Exhibition Section */}
-      <AnimatedSection className="py-16 border-y" style={{ backgroundColor: DARK_CARD, borderColor: `${ORANGE}15` }}>
+      <AnimatedSection className="py-16 border-y" engagementId="exhibition" style={{ backgroundColor: DARK_CARD, borderColor: `${ORANGE}15` }}>
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -1197,7 +1244,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Merchant Arabian Section */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
+      <AnimatedSection className="py-16" engagementId="merchant_club" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center">
@@ -1229,7 +1276,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* "لمين المسار ده؟" Section */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK }}>
+      <AnimatedSection className="py-16" engagementId="audience_fit" style={{ backgroundColor: DARK }}>
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
@@ -1272,7 +1319,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Wholesale Platform Section */}
-      <AnimatedSection id="wholesale-platform" className="py-16 border-y" style={{ backgroundColor: DARK_CARD, borderColor: `${ORANGE}15` }}>
+      <AnimatedSection id="wholesale-platform" engagementId="wholesale_platform" className="py-16 border-y" style={{ backgroundColor: DARK_CARD, borderColor: `${ORANGE}15` }}>
         <div className="container">
           <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center max-w-6xl mx-auto">
             <div>
@@ -1345,7 +1392,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* FAQ Section */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK_SECTION }}>
+      <AnimatedSection className="py-16" engagementId="faq" style={{ backgroundColor: DARK_SECTION }}>
         <div className="container">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-10">
@@ -1363,7 +1410,7 @@ export default function Home() {
               ].map((item, i) => (
                 <div key={i} className="border rounded-xl overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
                   <button
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    onClick={() => handleFaqToggle(i, item.q)}
                     className="w-full flex items-center justify-between p-5 text-right transition-colors"
                     style={{ backgroundColor: openFaq === i ? DARK_CARD : "transparent" }}
                   >
@@ -1389,7 +1436,7 @@ export default function Home() {
       </AnimatedSection>
 
       {/* Final CTA */}
-      <AnimatedSection className="py-16" style={{ backgroundColor: DARK }}>
+      <AnimatedSection className="py-16" engagementId="final_cta" style={{ backgroundColor: DARK }}>
         <div className="container">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">

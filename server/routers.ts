@@ -9,6 +9,9 @@ import {
   markLeadWhatsAppOptOut,
   markWebinarMessageLogDraftReceived,
   queueWebinarMessageForReview,
+  recordVisitorEngagement,
+  linkVisitorEngagementToLead,
+  getVisitorEngagementSummary,
 } from "./db";
 import { deliverAcademyLead } from "./academyLeadDelivery";
 import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
@@ -19,6 +22,7 @@ import {
 } from "./webinarDraftHandoff";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { ENGAGEMENT_EVENT_NAMES } from "./engagementSummary";
 
 // Admin-only procedure: only users with role=admin can access
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -70,6 +74,7 @@ export const appRouter = router({
           eventSourceUrl: z.string().url().max(2048).optional(),
           fbclid: z.string().min(1).max(512).optional(),
           fbp: z.string().min(1).max(512).optional(),
+          visitorSessionId: z.string().uuid().max(64).optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -84,7 +89,20 @@ export const appRouter = router({
           preference: input.preference || null,
           whatsappConsent: input.whatsappConsent ? 1 : 0,
           whatsappConsentAt: input.whatsappConsent ? new Date() : null,
+          visitorSessionId: input.visitorSessionId ?? null,
         });
+        if (input.visitorSessionId) {
+          await linkVisitorEngagementToLead(input.visitorSessionId, result.id);
+        }
+        const engagementSummary = input.visitorSessionId
+          ? await getVisitorEngagementSummary(input.visitorSessionId)
+          : undefined;
+        const engagementDeliveryContext = input.visitorSessionId && engagementSummary
+          ? {
+              visitor_session_id: input.visitorSessionId,
+              engagement_summary: engagementSummary,
+            }
+          : {};
         const automationDelivered = await deliverAcademyLead({
           name: input.name,
           phone: input.phone,
@@ -93,6 +111,7 @@ export const appRouter = router({
           event_source_url: input.eventSourceUrl,
           fbclid: input.fbclid,
           fbp: input.fbp,
+          ...engagementDeliveryContext,
         });
         return { ...result, automationDelivered };
       }),
@@ -107,7 +126,18 @@ export const appRouter = router({
       .input(z.object({ status: z.enum(["HOT", "WARM", "COLD"]) }))
       .query(async ({ input }) => {
         return getLeadsByStatus(input.status);
-    }),
+      }),
+  }),
+
+  engagement: router({
+    track: publicProcedure
+      .input(z.object({
+        sessionId: z.string().uuid().max(64),
+        eventName: z.enum(ENGAGEMENT_EVENT_NAMES),
+        target: z.string().min(1).max(128),
+        detail: z.string().max(255).optional(),
+      }))
+      .mutation(async ({ input }) => recordVisitorEngagement(input)),
   }),
 
   // Admin-only safety gate. This records queue decisions but never delivers WhatsApp messages.

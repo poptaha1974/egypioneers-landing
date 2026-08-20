@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -44,11 +44,45 @@ export const leads = mysqlTable("leads", {
   whatsappConsent: int("whatsappConsent").default(0).notNull(),
   whatsappConsentAt: timestamp("whatsappConsentAt"),
   whatsappOptedOutAt: timestamp("whatsappOptedOutAt"),
+  visitorSessionId: varchar("visitorSessionId", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  visitorSessionIndex: index("leads_visitor_session_idx").on(table.visitorSessionId),
+}));
 
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = typeof leads.$inferInsert;
+
+// ======================================================
+// Visitor Engagement - سلوك ملاحظ لا يساوي نية شراء.
+// يُربط بالـLead بعد التسجيل عبر visitorSessionId عشوائي.
+// ======================================================
+export const visitorEngagementEvents = mysqlTable("visitorEngagementEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  leadId: int("leadId"),
+  eventName: mysqlEnum("eventName", [
+    "section_viewed",
+    "faq_opened",
+    "video_started",
+    "video_completed",
+    "cta_clicked",
+    "form_started",
+  ]).notNull(),
+  target: varchar("target", { length: 128 }).notNull(),
+  detail: varchar("detail", { length: 255 }),
+  occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+}, (table) => ({
+  uniqueSessionEventTarget: uniqueIndex("visitor_engagement_session_event_target_unique").on(
+    table.sessionId,
+    table.eventName,
+    table.target,
+  ),
+  sessionIndex: index("visitor_engagement_session_idx").on(table.sessionId),
+  leadIndex: index("visitor_engagement_lead_idx").on(table.leadId),
+}));
+
+export type VisitorEngagementEvent = typeof visitorEngagementEvents.$inferSelect;
 
 // ======================================================
 // Purchases - سجل الدفع المؤكد فقط؛ لا يُنشأ من زر أو صفحة نجاح.

@@ -1,4 +1,5 @@
 import { ACADEMY_LEAD_WEBHOOK_URL } from "../client/src/lib/campaignDelivery";
+import type { EngagementSummary } from "./engagementSummary";
 
 export type AcademyLeadDeliveryPayload = {
   name: string;
@@ -8,6 +9,8 @@ export type AcademyLeadDeliveryPayload = {
   event_source_url?: string;
   fbclid?: string;
   fbp?: string;
+  visitor_session_id?: string;
+  engagement_summary?: EngagementSummary;
 };
 
 type FetchLike = (input: string, init: RequestInit) => Promise<{ ok: boolean; status: number }>;

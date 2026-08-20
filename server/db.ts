@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -7,6 +7,7 @@ import {
   InsertLead,
   Lead,
   webinarMessageLogs,
+  visitorEngagementEvents,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import {
@@ -14,6 +15,10 @@ import {
   type QueueWebinarMessageInput,
   type QueueWebinarMessageResult,
 } from "./webinarMessageQueue";
+import {
+  type EngagementEventName,
+  summarizeEngagement,
+} from "./engagementSummary";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -161,6 +166,75 @@ export async function createLead(data: Omit<InsertLead, 'id' | 'intentScore' | '
   });
 
   return { id: Number(result[0].insertId), intentScore, leadStatus };
+}
+
+type RecordVisitorEngagementInput = {
+  sessionId: string;
+  eventName: EngagementEventName;
+  target: string;
+  detail?: string;
+};
+
+function isDuplicateEngagementError(error: unknown): boolean {
+  return error instanceof Error && /duplicate entry|visitor_engagement_session_event_target_unique/i.test(error.message);
+}
+
+/** يسجل مرة واحدة لكل session/event/target، ويضيف leadId تلقائياً إن كان الزائر سجّل بالفعل. */
+export async function recordVisitorEngagement(input: RecordVisitorEngagementInput): Promise<{ recorded: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await db.select({ id: visitorEngagementEvents.id })
+    .from(visitorEngagementEvents)
+    .where(and(
+      eq(visitorEngagementEvents.sessionId, input.sessionId),
+      eq(visitorEngagementEvents.eventName, input.eventName),
+      eq(visitorEngagementEvents.target, input.target),
+    ))
+    .limit(1);
+  if (existing.length > 0) return { recorded: false };
+
+  const matchedLead = (await db.select({ id: leads.id })
+    .from(leads)
+    .where(eq(leads.visitorSessionId, input.sessionId))
+    .orderBy(desc(leads.createdAt))
+    .limit(1))[0];
+
+  try {
+    await db.insert(visitorEngagementEvents).values({
+      sessionId: input.sessionId,
+      eventName: input.eventName,
+      target: input.target,
+      detail: input.detail ?? null,
+      leadId: matchedLead?.id ?? null,
+    });
+    return { recorded: true };
+  } catch (error) {
+    if (isDuplicateEngagementError(error)) return { recorded: false };
+    throw error;
+  }
+}
+
+export async function linkVisitorEngagementToLead(sessionId: string, leadId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(visitorEngagementEvents)
+    .set({ leadId })
+    .where(and(eq(visitorEngagementEvents.sessionId, sessionId), isNull(visitorEngagementEvents.leadId)));
+}
+
+export async function getVisitorEngagementSummary(sessionId: string) {
+  const db = await getDb();
+  if (!db) return summarizeEngagement([]);
+  const events = await db.select({
+    eventName: visitorEngagementEvents.eventName,
+    target: visitorEngagementEvents.target,
+    occurredAt: visitorEngagementEvents.occurredAt,
+  })
+    .from(visitorEngagementEvents)
+    .where(eq(visitorEngagementEvents.sessionId, sessionId))
+    .orderBy(desc(visitorEngagementEvents.occurredAt));
+  return summarizeEngagement(events);
 }
 
 export async function getAllLeads(): Promise<Lead[]> {

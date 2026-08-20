@@ -5,6 +5,17 @@ vi.mock("./db", () => ({
   createLead: vi.fn().mockResolvedValue({ id: 1, intentScore: 75, leadStatus: "HOT" }),
   getAllLeads: vi.fn().mockResolvedValue([]),
   getLeadsByStatus: vi.fn().mockResolvedValue([]),
+  getVisitorEngagementSummary: vi.fn().mockResolvedValue({
+    sectionsViewed: ["hero_offer"],
+    faqsOpened: [],
+    videoStarted: false,
+    videoCompleted: false,
+    decisionTouches: ["Hero"],
+    interactionCount: 2,
+    lastInteractedAt: "2026-08-20T18:00:00.000Z",
+  }),
+  linkVisitorEngagementToLead: vi.fn().mockResolvedValue(undefined),
+  recordVisitorEngagement: vi.fn().mockResolvedValue({ recorded: true }),
   getDb: vi.fn(),
   upsertUser: vi.fn(),
   getUserByOpenId: vi.fn(),
@@ -60,6 +71,7 @@ describe("Leads tRPC Router - Integration Tests", () => {
         preference: "أونلاين",
         whatsappConsent: 1,
         whatsappConsentAt: expect.any(Date),
+        visitorSessionId: null,
       });
       expect(deliverAcademyLead).toHaveBeenCalledWith({
         name: "أحمد محمد",
@@ -97,7 +109,30 @@ describe("Leads tRPC Router - Integration Tests", () => {
         preference: null,
         whatsappConsent: 0,
         whatsappConsentAt: null,
+        visitorSessionId: null,
       });
+    });
+
+    it("يربط سلوك الجلسة بالـLead ويرسله كملخص عند وجود جلسة صحيحة", async () => {
+      const { createLead, getVisitorEngagementSummary, linkVisitorEngagementToLead } = await import("./db");
+      const { deliverAcademyLead } = await import("./academyLeadDelivery");
+      const caller = createPublicCaller();
+      const visitorSessionId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+
+      await caller.leads.submit({
+        name: "محمود",
+        phone: "01012345678",
+        email: "mahmoud@example.com",
+        visitorSessionId,
+      });
+
+      expect(createLead).toHaveBeenCalledWith(expect.objectContaining({ visitorSessionId }));
+      expect(linkVisitorEngagementToLead).toHaveBeenCalledWith(visitorSessionId, 1);
+      expect(getVisitorEngagementSummary).toHaveBeenCalledWith(visitorSessionId);
+      expect(deliverAcademyLead).toHaveBeenCalledWith(expect.objectContaining({
+        visitor_session_id: visitorSessionId,
+        engagement_summary: expect.objectContaining({ sectionsViewed: ["hero_offer"] }),
+      }));
     });
 
     it("keeps the registration successful when automation delivery reports a failure", async () => {
