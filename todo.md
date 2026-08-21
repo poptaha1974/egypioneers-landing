@@ -24,3 +24,4 @@
 - [x] Create a video creative, CAPI, and daily performance-review playbook for the new campaign
 - [x] Conduct a read-only n8n execution and webinar attribution audit for duplicate leads and lost UTM values
 - [x] Prepare a safe, evidence-led Perplexity prompt for independent review of campaign, CAPI, and webinar attribution
+- [x] Review the attached draft-first prompt for duplicate-lead and UTM remediation before any implementation
