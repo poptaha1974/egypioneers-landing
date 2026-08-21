@@ -32,3 +32,6 @@
 - [x] Add isolated Draft Event Log and Contact Projection test coverage
 - [x] Verify whatsapp_prefilled bypasses Claude, HOT, alerts, CAPI, CRM, and production Sheet
 - [x] Update and validate the egy-pioneers-lead-quality-governor skill with the Draft test workflow
+- [x] Run an isolated whatsapp_organic Draft test through model and final-status gates
+- [x] Define the truthful financial ledger schema and data-flow mappings
+- [x] Prepare a separate Draft-only CAPI V2 activation plan after data validation

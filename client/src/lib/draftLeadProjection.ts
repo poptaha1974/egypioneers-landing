@@ -31,6 +31,14 @@ export type DraftRouting = {
   sheet_called: boolean;
 };
 
+export type DraftOrganicAssessment = {
+  simulation_only: true;
+  model_classification: "HOT" | "WARM" | "COLD";
+  final_status: "HOT" | "WARM" | "COLD";
+  score: number;
+  decision_signals: string[];
+};
+
 export function draftProjectionKey(event: Pick<DraftEventLogEntry, "registration_event_id" | "visitor_session_id" | "normalized_phone">) {
   return event.registration_event_id
     ? `registration:${event.registration_event_id}:${event.normalized_phone}`
@@ -46,6 +54,31 @@ export function getDraftRouting(origin: DraftMessageOrigin): DraftRouting {
     capi_called: false,
     crm_called: false,
     sheet_called: false,
+  };
+}
+
+/**
+ * Draft-only contract test for the downstream model/gate interface.
+ * It never calls Claude and must never be wired to production decisions.
+ */
+export function simulateDraftOrganicAssessment(message: string): DraftOrganicAssessment {
+  const normalized = message.toLowerCase().replace(/[أإآ]/g, "ا");
+  const signalPatterns = [
+    { label: "جاهز", match: "جاهز" },
+    { label: "التكلفة", match: "التكلفة" },
+    { label: "موعد", match: "موعد" },
+    { label: "ابدأ", match: "ابدا" },
+    { label: "تقسيط", match: "تقسيط" },
+    { label: "سعر", match: "سعر" },
+  ];
+  const signals = signalPatterns.filter(({ match }) => normalized.includes(match)).map(({ label }) => label);
+  const hot = signals.length >= 2;
+  return {
+    simulation_only: true,
+    model_classification: hot ? "HOT" : "WARM",
+    final_status: hot ? "HOT" : "WARM",
+    score: hot ? 90 : 65,
+    decision_signals: signals,
   };
 }
 

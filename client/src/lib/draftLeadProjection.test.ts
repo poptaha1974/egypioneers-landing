@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendDraftEvent } from "./draftLeadProjection";
+import { appendDraftEvent, simulateDraftOrganicAssessment } from "./draftLeadProjection";
 
 const registrationEvent = {
   event_id: "event_form_001",
@@ -51,5 +51,16 @@ describe("draft Event Log and Contact Projection", () => {
       raw_message: "أنا جاهز أبدأ وعايز أعرف التكلفة وموعد المقابلة.",
     });
     expect(result.routing).toMatchObject({ claude_called: true, hot_gate_called: true, capi_called: false });
+  });
+
+  it("يحاكي عقد Claude ثم gate للرسالة العضوية من دون أي side effects", () => {
+    const assessment = simulateDraftOrganicAssessment("أنا جاهز أبدأ وعايز أعرف التكلفة وموعد المقابلة.");
+    expect(assessment).toMatchObject({
+      simulation_only: true,
+      model_classification: "HOT",
+      final_status: "HOT",
+      score: 90,
+    });
+    expect(assessment.decision_signals).toEqual(expect.arrayContaining(["جاهز", "التكلفة", "موعد", "ابدأ"]));
   });
 });
