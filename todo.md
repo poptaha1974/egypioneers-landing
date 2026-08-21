@@ -29,3 +29,6 @@
 - [x] Update the V2 remediation document with final test-isolation controls
 - [x] Create an isolated preview test page with stable draft identifiers and webhook-test only
 - [x] Run a safe draft payload test and document the review report without production side effects
+- [x] Add isolated Draft Event Log and Contact Projection test coverage
+- [x] Verify whatsapp_prefilled bypasses Claude, HOT, alerts, CAPI, CRM, and production Sheet
+- [x] Update and validate the egy-pioneers-lead-quality-governor skill with the Draft test workflow

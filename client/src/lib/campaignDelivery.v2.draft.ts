@@ -24,6 +24,8 @@ export type DraftTracking = {
 export type DraftRegistrationPayload = {
   test_mode: true;
   test_label: "TEST_UTM_DEDUP_V2";
+  event_id: string;
+  message_origin: "landing_form" | "whatsapp_prefilled" | "whatsapp_organic";
   registration_event_id: string;
   visitor_session_id: string;
   name: string;
@@ -110,17 +112,22 @@ export function buildDraftRegistrationPayload(input: {
   email: string;
   registrationEventId: string;
   visitorSessionId: string;
+  eventId?: string;
+  messageOrigin?: "landing_form" | "whatsapp_prefilled" | "whatsapp_organic";
+  message?: string;
   sourceUrl?: string;
 }): DraftRegistrationPayload {
   return {
     test_mode: true,
     test_label: "TEST_UTM_DEDUP_V2",
+    event_id: input.eventId ?? `event_${input.registrationEventId}_form`,
+    message_origin: input.messageOrigin ?? "landing_form",
     registration_event_id: input.registrationEventId,
     visitor_session_id: input.visitorSessionId,
     name: input.name,
     phone: normalizeDraftEgyptianPhone(input.phone),
     email: input.email,
-    message: "",
+    message: input.message ?? "",
     tracking: captureDraftTracking(input.sourceUrl),
   };
 }

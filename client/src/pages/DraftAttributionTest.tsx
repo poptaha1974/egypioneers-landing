@@ -8,6 +8,11 @@ import {
   DRAFT_ATTRIBUTION_TEST_WEBHOOK_URL,
   getOrCreateDraftVisitorSessionId,
 } from "@/lib/campaignDelivery.v2.draft";
+import {
+  appendDraftEvent,
+  type DraftEventLogEntry,
+  type DraftMessageOrigin,
+} from "@/lib/draftLeadProjection";
 
 const TEST_SOURCE_URL = "https://preview.test/?utm_source=meta&utm_medium=paid_social&utm_campaign=test&utm_content=test_map&utm_id=test-utm-id&fbclid=test123";
 const INITIAL_TEST_REGISTRATION_EVENT_ID = "registration_test_utm_dedup_v2_001";
@@ -17,10 +22,11 @@ export default function DraftAttributionTest() {
   const [registrationEventId, setRegistrationEventId] = useState(INITIAL_TEST_REGISTRATION_EVENT_ID);
   const visitorSessionId = useMemo(() => getOrCreateDraftVisitorSessionId(INITIAL_TEST_VISITOR_SESSION_ID), []);
   const [listenerConfirmed, setListenerConfirmed] = useState(false);
+  const [scenario, setScenario] = useState<DraftMessageOrigin>("landing_form");
   const [result, setResult] = useState<string>("لم يتم الإرسال. الصفحة لا تتصل بالإنتاج أو CAPI.");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const payload = useMemo(() => buildDraftRegistrationPayload({
+  const basePayload = useMemo(() => buildDraftRegistrationPayload({
     name: "TEST_UTM_LEAD",
     phone: "01000000000",
     email: "test.utmdedup@example.com",
@@ -28,6 +34,46 @@ export default function DraftAttributionTest() {
     visitorSessionId,
     sourceUrl: TEST_SOURCE_URL,
   }), [registrationEventId, visitorSessionId]);
+
+  const draftState = useMemo(() => {
+    const formEvent: DraftEventLogEntry = {
+      event_id: basePayload.event_id,
+      message_origin: "landing_form",
+      registration_event_id: basePayload.registration_event_id,
+      visitor_session_id: basePayload.visitor_session_id,
+      normalized_phone: basePayload.phone,
+      raw_message: "",
+      occurred_at: "2026-08-21T12:00:00.000Z",
+    };
+    const initial = appendDraftEvent([], [], formEvent);
+    if (scenario !== "whatsapp_prefilled") return { ...initial, currentEvent: formEvent };
+
+    const prefilledEvent: DraftEventLogEntry = {
+      ...formEvent,
+      event_id: `event_${registrationEventId}_prefilled`,
+      message_origin: "whatsapp_prefilled",
+      raw_message: "أنا TEST_UTM_LEAD سجلت في ويبنار Egy-Pioneers وعايز أعرف تفاصيل الدخول.",
+      occurred_at: "2026-08-21T12:00:17.000Z",
+    };
+    return { ...appendDraftEvent(initial.eventLog, initial.projections, prefilledEvent), currentEvent: prefilledEvent };
+  }, [basePayload, registrationEventId, scenario]);
+
+  const payload = useMemo(() => ({
+    ...buildDraftRegistrationPayload({
+      name: basePayload.name,
+      phone: basePayload.phone,
+      email: basePayload.email,
+      registrationEventId,
+      visitorSessionId,
+      eventId: draftState.currentEvent.event_id,
+      messageOrigin: draftState.currentEvent.message_origin,
+      message: draftState.currentEvent.raw_message,
+      sourceUrl: TEST_SOURCE_URL,
+    }),
+    draft_event_log: draftState.eventLog,
+    contact_projection: draftState.projections[0],
+    routing: draftState.routing,
+  }), [basePayload, draftState, registrationEventId, visitorSessionId]);
 
   const submitDraft = async (event: FormEvent) => {
     event.preventDefault();
@@ -84,9 +130,17 @@ export default function DraftAttributionTest() {
           </label>
           <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={isSubmitting} className="bg-amber-500 text-black hover:bg-amber-400">{isSubmitting ? "جارٍ الإرسال…" : "إرسال Payload تجريبي"}</Button>
+            <Button type="button" variant={scenario === "whatsapp_prefilled" ? "default" : "outline"} onClick={() => setScenario("whatsapp_prefilled")}>تجهيز whatsapp_prefilled</Button>
+            <Button type="button" variant={scenario === "landing_form" ? "default" : "outline"} onClick={() => setScenario("landing_form")}>تجهيز landing_form</Button>
             <Button type="button" variant="outline" onClick={resetDraftEvent}>بدء سيناريو اختبار جديد</Button>
           </div>
         </form>
+
+        <Card className="bg-white/5 border-white/10 p-5 space-y-2 text-sm">
+          <h2 className="font-bold">Draft Event Log وContact Projection</h2>
+          <p>السيناريو الحالي: <strong className="text-amber-300">{scenario}</strong> | Event Log: <strong>{draftState.eventLog.length}</strong> حدث | Contact Projection: <strong>{draftState.projections.length}</strong> صف.</p>
+          <p className="text-emerald-300">Claude: {String(draftState.routing.claude_called)} | HOT gate: {String(draftState.routing.hot_gate_called)} | Alert/CAPI/CRM/Sheet: false.</p>
+        </Card>
 
         <Card className="bg-slate-950 border-white/10 p-5">
           <h2 className="font-bold mb-2">Payload للمراجعة</h2>
