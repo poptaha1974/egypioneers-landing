@@ -23,3 +23,4 @@
 - [x] Package the campaign analysis and draft-preparation workflow as a reusable skill
 - [x] Create a video creative, CAPI, and daily performance-review playbook for the new campaign
 - [x] Conduct a read-only n8n execution and webinar attribution audit for duplicate leads and lost UTM values
+- [x] Prepare a safe, evidence-led Perplexity prompt for independent review of campaign, CAPI, and webinar attribution
