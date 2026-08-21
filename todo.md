@@ -26,3 +26,6 @@
 - [x] Prepare a safe, evidence-led Perplexity prompt for independent review of campaign, CAPI, and webinar attribution
 - [x] Review the attached draft-first prompt for duplicate-lead and UTM remediation before any implementation
 - [x] Verify the revised V2 remediation prompt against the required draft safety controls
+- [x] Update the V2 remediation document with final test-isolation controls
+- [x] Create an isolated preview test page with stable draft identifiers and webhook-test only
+- [x] Run a safe draft payload test and document the review report without production side effects
