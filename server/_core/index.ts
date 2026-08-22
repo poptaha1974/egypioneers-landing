@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { paymentWebhookNotConfigured } from "../paymentWebhook";
+import { handleCapiDailySchedule } from "../capiScheduledRoute";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,7 @@ async function startServer() {
   registerOAuthRoutes(app);
   // بوابة Purchase محجوزة وآمنة حتى تفعيل مزود دفع وتحقق توقيع خاص به.
   app.post("/api/webhooks/payment", paymentWebhookNotConfigured);
+  app.post("/api/scheduled/capi-health", handleCapiDailySchedule);
   // tRPC API
   app.use(
     "/api/trpc",
