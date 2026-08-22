@@ -35,3 +35,13 @@
 - [x] Run an isolated whatsapp_organic Draft test through model and final-status gates
 - [x] Define the truthful financial ledger schema and data-flow mappings
 - [x] Prepare a separate Draft-only CAPI V2 activation plan after data validation
+- [x] Update lead-quality governor skill with final data contract and CAPI V2 draft controls
+- [x] Verify messaging channel identifiers and Test Events prerequisites without exposing secrets
+- [x] Create an inactive CAPI V2 Draft workflow and prepare a controlled organic-lead test
+- [x] Record the monitored test outcome and final production-approval recommendation
+- [x] Capture a real numeric Messenger PSID from a controlled organic message before retesting CAPI V2 Draft
+- [x] Obtain events_received=1 in Meta Test Events with a real numeric Messenger PSID before any production approval
+- [x] تثبيت سجل الأدلة والبيانات الناقصة لتقرير 360 درجة لحملة الويبنار
+- [x] استخراج وتحليل Google Sheet بدون تعديل أو مسح أي صف
+- [x] إعداد تدقيق الأبعاد المالية والبيعية والتقنية والتسويقية والتشغيلية مع حالة تحقق لكل حقيقة
+- [x] صياغة قرارات ميزانية 30 يوم وأحكام GO / CONDITIONAL GO / NO-GO دون افتراض أرقام غير متاحة
