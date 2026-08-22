@@ -56,9 +56,9 @@
 - [x] الحصول على موافقة نهائية صريحة على كشف تغييرات الإنتاج
 - [x] تفعيل Sheet V2 والتحقق من إضافة 150 صفاً فقط من دون حذف أو تكرار وفق مفاتيح Dedup
 - [x] تفعيل CAPI V2 واختبار Meta Test Events وDedup من دون أي CRM أو Sheet أو رسائل صادرة
-- [ ] التحقق من أول HOT Messenger عضوي حي عبر Relay قبل إيقاف CAPI القديم
-- [ ] إيقاف CAPI القديم فقط بعد نجاح تحقق المصدر الحي وتوثيق عدم وجود فجوة قياس
-- [ ] تسليم تقرير الإصلاح النهائي وحالة المسارات النشطة
+- [x] مستبدل: Messenger خارج نطاق الحملة؛ Relay Messenger معلّق ولا يدخل في اعتماد القياس
+- [x] تطبيق Legacy bypass لمسار Landing Page؛ CAPI القديم لا يسجل Lead Website ثانياً
+- [x] تسليم تقرير الإصلاح النهائي وحالة المسارات النشطة
 - [x] تثبيت خريطة مسار حملة Lead الفعلي واستبعاد Messenger وInstagram من اعتماد القياس
 - [x] تدقيق حقول Landing Page وWhatsApp وFunnelFast اللازمة لإسناد CAPI الويب وWhatsApp
 - [x] تعليق Relay Messenger التجريبي ومنع إرسال QualifiedLead منه إلى Meta
@@ -67,4 +67,4 @@
 - [x] تصميم مواءمة تمنع تكرار Lead بين Browser Pixel وCAPI V2 Web والعقدة القديمة
 - [x] إدراج نتيجة تدقيق CAPI القديم في تقرير Draft قبل أي تفعيل CAPI V2 Web
 - [x] إنشاء واختبار CAPI V2 Web Draft معزول وإثبات `events_received=1` من Meta
-- [ ] الحصول على موافقة نهائية لتفعيل CAPI V2 Web وربط صفحة الهبوط وإضافة Legacy bypass لمنع Lead المزدوج
+- [x] الحصول على موافقة نهائية لتفعيل CAPI V2 Web وربط صفحة الهبوط وإضافة Legacy bypass لمنع Lead المزدوج
