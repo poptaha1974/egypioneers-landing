@@ -23,6 +23,7 @@ vi.mock("./db", () => ({
 
 vi.mock("./academyLeadDelivery", () => ({
   deliverAcademyLead: vi.fn().mockResolvedValue(true),
+  deliverWebCapiLead: vi.fn().mockResolvedValue(true),
 }));
 
 function createPublicCaller() {
@@ -85,7 +86,13 @@ describe("Leads tRPC Router - Integration Tests", () => {
       expect((createLead as any).mock.invocationCallOrder[0]).toBeLessThan(
         (deliverAcademyLead as any).mock.invocationCallOrder[0],
       );
-      expect(result).toEqual({ id: 1, intentScore: 75, leadStatus: "HOT", automationDelivered: true });
+      expect(result).toEqual({
+        id: 1,
+        intentScore: 75,
+        leadStatus: "HOT",
+        automationDelivered: true,
+        capiWebDelivered: true,
+      });
     });
 
     it("should handle optional fields as null when undefined", async () => {

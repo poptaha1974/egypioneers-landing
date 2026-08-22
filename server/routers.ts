@@ -13,7 +13,7 @@ import {
   linkVisitorEngagementToLead,
   getVisitorEngagementSummary,
 } from "./db";
-import { deliverAcademyLead } from "./academyLeadDelivery";
+import { deliverAcademyLead, deliverWebCapiLead } from "./academyLeadDelivery";
 import { WEBINAR_MESSAGE_TYPES } from "./webinarMessageDraft";
 import {
   createQueuedWebinarDraftHandoff,
@@ -103,7 +103,7 @@ export const appRouter = router({
               engagement_summary: engagementSummary,
             }
           : {};
-        const automationDelivered = await deliverAcademyLead({
+        const landingLeadPayload = {
           name: input.name,
           phone: input.phone,
           email: input.email,
@@ -112,8 +112,10 @@ export const appRouter = router({
           fbclid: input.fbclid,
           fbp: input.fbp,
           ...engagementDeliveryContext,
-        });
-        return { ...result, automationDelivered };
+        };
+        const automationDelivered = await deliverAcademyLead(landingLeadPayload);
+        const capiWebDelivered = await deliverWebCapiLead(landingLeadPayload);
+        return { ...result, automationDelivered, capiWebDelivered };
       }),
 
     // Admin-only: Admin فقط يشوف الـ leads

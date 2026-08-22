@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { deliverAcademyLead } from "./academyLeadDelivery";
+import { deliverAcademyLead, deliverWebCapiLead } from "./academyLeadDelivery";
 
 const payload = {
   name: "أحمد محمد",
@@ -47,5 +47,16 @@ describe("تسليم تسجيل الأكاديمية إلى الأتمتة", () 
 
     await expect(deliverAcademyLead(payload, request)).resolves.toBe(false);
     expect(warning).toHaveBeenCalledOnce();
+  });
+
+  it("يرسل نسخة التسجيل نفسها إلى CAPI Web بشكل مستقل عن FunnelFast", async () => {
+    const request = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+
+    await expect(deliverWebCapiLead(payload, request)).resolves.toBe(true);
+    expect(request).toHaveBeenCalledOnce();
+    expect(request).toHaveBeenCalledWith(
+      expect.stringContaining("epa-capi-web-v2-draft"),
+      expect.objectContaining({ body: JSON.stringify(payload), method: "POST" }),
+    );
   });
 });
