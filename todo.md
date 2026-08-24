@@ -94,39 +94,41 @@
 - [x] إضافة event_id وdedup_decision للصفوف الجديدة فقط وتحديث Sheet V2 لملئهما والتحقق من أول صف فعلي
 - [x] تشغيل تنفيذ Sheet V2 جديد ثم التحقق قراءة فقط من امتلاء event_id وdedup_decision في آخر صف مضاف
 - [x] توثيق نتيجة تنفيذ Sheet V2 الجديدة بعدد الصفوف المضافة ومؤشر Dedup بلا عرض بيانات حساسة
-- [ ] تدقيق أمر إصلاح n8n المرفق قراءة فقط وتحديد التغييرات الآمنة والقرارات المطلوبة
-- [ ] إعداد حزمة دليل مستقلة للمراجعة قبل أي تعديل على Workflows الإنتاجية
+- [x] تدقيق أمر إصلاح n8n المرفق وقراراته الآمنة؛ استُبدل بسلسلة تدقيقات جراحية واختبارات قبول موثقة
+- [x] إعداد حزمة دليل للمراجعة؛ التقارير والنسخ الاحتياطية ونتائج القبول موثقة ضمن ملف الإصلاح
 - [x] حفظ نسخة استعادة وتعديل capi-send وCode: Build Messaging Event فقط إلى Lead ثم استرجاعهما إلى messaging_first_reply من النسخة 1J5FyerXIRUN3umv
 - [x] اختبار CAPI Draft معزول بـctwa_clid حقيقي وتوثيق استجابة Meta وerror_subcode وfbtrace_id
-- [ ] إبقاء تاب قائمة المبيعات - نظيفة وWorkflows المؤقتة دون تعديل في هذه الجولة
+- [x] إبقاء تاب قائمة المبيعات - نظيفة وWorkflows المؤقتة دون تعديل في هذه الجولة، وفق قرار المالك
 - [x] استرجاع capi-send وCode: Build Messaging Event فقط إلى messaging_first_reply من النسخة 1J5FyerXIRUN3umv
 - [x] إنشاء Draft مستقل لاختبار LeadSubmitted ثم Purchase بلا آثار CRM أو Sheet أو رسائل
 - [x] توثيق نص رسالة Meta الحرفي وerror_subcode وfbtrace_id لكل محاولة Draft
-- [ ] فحص وإصلاح تفويض Meta/Pixel لCredential Draft بعد موافقة مستقلة ثم إعادة LeadSubmitted فقط
+- [x] إغلاق فحص Credential Draft بقرار المالك؛ نجاح الإنتاج أصبح الدليل الحاكم ولا إجراء Draft إضافي
 - [x] إرسال اختبار تفريقي واحد عبر الإنتاج بحالته الحالية؛ احتفظ n8n بـ400 Invalid parameter فقط ولم يحتفظ error_subcode
 - [x] إجراء تدقيق قراءة فقط لتفويض Meta وPixel بلا تجديد أو تغيير؛ النتيجة OAuth 200 وinsufficient_scope
 - [x] تطبيق نقطة التوقف: لم يظهر error_subcode 33، لكن اكتشاف فشل التفويض أوقف أي اختبار CAPI لاحق
-- [ ] انتظار موافقة مستقلة لتدقيق قراءة فقط للآثار الجانبية المحتملة للتنفيذ الإنتاجي 20549، بلا حذف أو تنظيف
-- [ ] انتظار موافقة مستقلة لتدقيق تفويض التطبيق/الأصول في Meta Business Settings، بلا تجديد Token أو نشر
+- [x] إغلاق تدقيق آثار 20549 بعد ثبوت عدم وصوله إلى Classifier/CRM/Sheet؛ لا حذف أو تنظيف
+- [x] إغلاق تدقيق تفويض التطبيق/الأصول بقرار المالك؛ لا تجديد Token أو نشر
 - [x] مراجعة أثر TEST_TOKEN_DIFFERENTIAL_20260824 في 20549؛ لم تنفذ Forward to Classifier أو Sheet/CRM، فلا يوجد أثر موثق لعزله
 - [x] إنشاء Backup غير نشط MwByWM30DkbrDsWR ثم تعديل event_name إلى LeadSubmitted في capi-send وCode: Build Messaging Event فقط
 - [x] تصحيح Set: Success Log إلى LeadSubmitted دون لمس action_source أو messaging_channel أو ctwa_clid أو الاعتماد
 - [x] تنفيذ اختبار قبول واحد وتوثيق نص خطأ Meta الحرفي وfbtrace_id؛ فشل القبول بـ2804069 Missing Page ID
-- [ ] انتظار موافقة مستقلة لإضافة page_id الصحيح في user_data ثم اختبار قبول واحد فقط؛ لا تغييرات أخرى
+- [x] إضافة page_id المعتمد واختباره؛ تجاوزت النتيجة عقبة Page ID ثم تحقق قبول Meta النهائي
 - [x] تثبيت Page ID الصحيح وموقعه داخل user_data من Workflow الإنتاج قبل التعديل
 - [x] إنشاء Backup غير نشط ثم إضافة page_id فقط إلى user_data مع حفظ كل الحقول الأخرى
 - [x] تنفيذ اختبار قبول واحد بعد page_id وتوثيق نص خطأ Meta وfbtrace_id؛ فشل بـ2804071 Missing CTWA clid
 - [x] التحقق من موضع page_id المعتمد 852717114597902 داخل capi-send user_data فقط قبل التعديل
 - [x] إنشاء Backup غير نشط dFk52Ags9bf7r4O0 ثم تعطيل Forward to Classifier وإضافة page_id فقط بلا تغيير أي حقل آخر
 - [x] تنفيذ اختبار قبول أول بعد تفعيل حاجز Forward to Classifier وتوثيق fbtrace_id؛ لم يتحقق events_received بسبب CTWA clid مفقود
-- [ ] انتظار موافقة صريحة لتنفيذ اختبار CTWA ثانٍ بctwa_clid حقيقي؛ شرط نجاح الاختبار الأول لم يتحقق
+- [x] تنفيذ اختبار CTWA بقيمة حقيقية لاحقاً بعد موافقة صريحة؛ تحقق events_received:1 في التنفيذ 20556
 - [x] التحقق من ctwa_clid الحقيقي من تنفيذ 20538 وحالة تعطيل Forward to Classifier قبل الاختبار
 - [x] تنفيذ اختبار CTWA واحد بالقيمة الحقيقية فقط؛ لم تصل المحاولة إلى Meta CAPI لتسجيل error_subcode أو fbtrace_id
 - [x] تصنيف نتيجة CTWA: غير قابلة للحكم لأن Code: Build Messaging Event أخرج صفر عناصر قبل Meta
-- [ ] انتظار موافقة مستقلة لتشخيص/إصلاح سبب تنفيذ Forward to Classifier رغم disabled:true قبل أي اختبار CAPI جديد
+- [x] إغلاق بند تشخيص الحاجز؛ تفسير المالك أثبت أن تنفيذ 0ms للعقدة المعطّلة Pass-through صحيح
 - [x] التحقق من بنية Webhook الصحيحة وحالة Forward to Classifier قبل اختبار CTWA المعاد
 - [x] تنفيذ اختبار CTWA واحد بالهيكل الصحيح دون تعديل Workflow: execution 20556 حقق events_received:1 وfbtrace_id موثق
 - [x] حفظ خط أساس للتنفيذات قبل إعادة تفعيل Forward to Classifier
 - [x] إنشاء Backup غير نشط qNSHlHpml5C1Ztsx ثم إعادة تفعيل Forward to Classifier فقط
-- [ ] رصد أول خمسة تنفيذات إنتاجية حقيقية قراءةً فقط واستبعاد الاختبارات الموسومة
-- [ ] حساب معدل نجاح التنفيذات الخمسة وتقديم تقرير بلا تنظيف أو حذف Workflows
+- [x] تأجيل رصد أول خمسة تنفيذات إنتاجية إلى طلب المالك فقط؛ لا متابعة خلفية
+- [x] تأجيل حساب معدل نجاح التنفيذات الخمسة إلى طلب المالك فقط؛ لا متابعة خلفية
+- [x] اعتماد المراقبة عند الطلب فقط من نقطة إعادة التفعيل، ورفض إنشاء متابعة خلفية
+- [x] إغلاق ملف إصلاح CAPI بعد نجاح events_received:1 وإعادة تفعيل Forward to Classifier
