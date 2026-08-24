@@ -126,3 +126,7 @@
 - [ ] انتظار موافقة مستقلة لتشخيص/إصلاح سبب تنفيذ Forward to Classifier رغم disabled:true قبل أي اختبار CAPI جديد
 - [x] التحقق من بنية Webhook الصحيحة وحالة Forward to Classifier قبل اختبار CTWA المعاد
 - [x] تنفيذ اختبار CTWA واحد بالهيكل الصحيح دون تعديل Workflow: execution 20556 حقق events_received:1 وfbtrace_id موثق
+- [x] حفظ خط أساس للتنفيذات قبل إعادة تفعيل Forward to Classifier
+- [x] إنشاء Backup غير نشط qNSHlHpml5C1Ztsx ثم إعادة تفعيل Forward to Classifier فقط
+- [ ] رصد أول خمسة تنفيذات إنتاجية حقيقية قراءةً فقط واستبعاد الاختبارات الموسومة
+- [ ] حساب معدل نجاح التنفيذات الخمسة وتقديم تقرير بلا تنظيف أو حذف Workflows
