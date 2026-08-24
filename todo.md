@@ -113,3 +113,10 @@
 - [x] تصحيح Set: Success Log إلى LeadSubmitted دون لمس action_source أو messaging_channel أو ctwa_clid أو الاعتماد
 - [x] تنفيذ اختبار قبول واحد وتوثيق نص خطأ Meta الحرفي وfbtrace_id؛ فشل القبول بـ2804069 Missing Page ID
 - [ ] انتظار موافقة مستقلة لإضافة page_id الصحيح في user_data ثم اختبار قبول واحد فقط؛ لا تغييرات أخرى
+- [x] تثبيت Page ID الصحيح وموقعه داخل user_data من Workflow الإنتاج قبل التعديل
+- [x] إنشاء Backup غير نشط ثم إضافة page_id فقط إلى user_data مع حفظ كل الحقول الأخرى
+- [x] تنفيذ اختبار قبول واحد بعد page_id وتوثيق نص خطأ Meta وfbtrace_id؛ فشل بـ2804071 Missing CTWA clid
+- [x] التحقق من موضع page_id المعتمد 852717114597902 داخل capi-send user_data فقط قبل التعديل
+- [x] إنشاء Backup غير نشط dFk52Ags9bf7r4O0 ثم تعطيل Forward to Classifier وإضافة page_id فقط بلا تغيير أي حقل آخر
+- [x] تنفيذ اختبار قبول أول بعد تفعيل حاجز Forward to Classifier وتوثيق fbtrace_id؛ لم يتحقق events_received بسبب CTWA clid مفقود
+- [ ] انتظار موافقة صريحة لتنفيذ اختبار CTWA ثانٍ بctwa_clid حقيقي؛ شرط نجاح الاختبار الأول لم يتحقق
