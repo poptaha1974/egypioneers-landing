@@ -108,3 +108,8 @@
 - [x] تطبيق نقطة التوقف: لم يظهر error_subcode 33، لكن اكتشاف فشل التفويض أوقف أي اختبار CAPI لاحق
 - [ ] انتظار موافقة مستقلة لتدقيق قراءة فقط للآثار الجانبية المحتملة للتنفيذ الإنتاجي 20549، بلا حذف أو تنظيف
 - [ ] انتظار موافقة مستقلة لتدقيق تفويض التطبيق/الأصول في Meta Business Settings، بلا تجديد Token أو نشر
+- [x] مراجعة أثر TEST_TOKEN_DIFFERENTIAL_20260824 في 20549؛ لم تنفذ Forward to Classifier أو Sheet/CRM، فلا يوجد أثر موثق لعزله
+- [x] إنشاء Backup غير نشط MwByWM30DkbrDsWR ثم تعديل event_name إلى LeadSubmitted في capi-send وCode: Build Messaging Event فقط
+- [x] تصحيح Set: Success Log إلى LeadSubmitted دون لمس action_source أو messaging_channel أو ctwa_clid أو الاعتماد
+- [x] تنفيذ اختبار قبول واحد وتوثيق نص خطأ Meta الحرفي وfbtrace_id؛ فشل القبول بـ2804069 Missing Page ID
+- [ ] انتظار موافقة مستقلة لإضافة page_id الصحيح في user_data ثم اختبار قبول واحد فقط؛ لا تغييرات أخرى
