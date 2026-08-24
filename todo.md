@@ -94,3 +94,17 @@
 - [x] إضافة event_id وdedup_decision للصفوف الجديدة فقط وتحديث Sheet V2 لملئهما والتحقق من أول صف فعلي
 - [x] تشغيل تنفيذ Sheet V2 جديد ثم التحقق قراءة فقط من امتلاء event_id وdedup_decision في آخر صف مضاف
 - [x] توثيق نتيجة تنفيذ Sheet V2 الجديدة بعدد الصفوف المضافة ومؤشر Dedup بلا عرض بيانات حساسة
+- [ ] تدقيق أمر إصلاح n8n المرفق قراءة فقط وتحديد التغييرات الآمنة والقرارات المطلوبة
+- [ ] إعداد حزمة دليل مستقلة للمراجعة قبل أي تعديل على Workflows الإنتاجية
+- [x] حفظ نسخة استعادة وتعديل capi-send وCode: Build Messaging Event فقط إلى Lead ثم استرجاعهما إلى messaging_first_reply من النسخة 1J5FyerXIRUN3umv
+- [x] اختبار CAPI Draft معزول بـctwa_clid حقيقي وتوثيق استجابة Meta وerror_subcode وfbtrace_id
+- [ ] إبقاء تاب قائمة المبيعات - نظيفة وWorkflows المؤقتة دون تعديل في هذه الجولة
+- [x] استرجاع capi-send وCode: Build Messaging Event فقط إلى messaging_first_reply من النسخة 1J5FyerXIRUN3umv
+- [x] إنشاء Draft مستقل لاختبار LeadSubmitted ثم Purchase بلا آثار CRM أو Sheet أو رسائل
+- [x] توثيق نص رسالة Meta الحرفي وerror_subcode وfbtrace_id لكل محاولة Draft
+- [ ] فحص وإصلاح تفويض Meta/Pixel لCredential Draft بعد موافقة مستقلة ثم إعادة LeadSubmitted فقط
+- [x] إرسال اختبار تفريقي واحد عبر الإنتاج بحالته الحالية؛ احتفظ n8n بـ400 Invalid parameter فقط ولم يحتفظ error_subcode
+- [x] إجراء تدقيق قراءة فقط لتفويض Meta وPixel بلا تجديد أو تغيير؛ النتيجة OAuth 200 وinsufficient_scope
+- [x] تطبيق نقطة التوقف: لم يظهر error_subcode 33، لكن اكتشاف فشل التفويض أوقف أي اختبار CAPI لاحق
+- [ ] انتظار موافقة مستقلة لتدقيق قراءة فقط للآثار الجانبية المحتملة للتنفيذ الإنتاجي 20549، بلا حذف أو تنظيف
+- [ ] انتظار موافقة مستقلة لتدقيق تفويض التطبيق/الأصول في Meta Business Settings، بلا تجديد Token أو نشر
