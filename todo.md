@@ -120,3 +120,7 @@
 - [x] إنشاء Backup غير نشط dFk52Ags9bf7r4O0 ثم تعطيل Forward to Classifier وإضافة page_id فقط بلا تغيير أي حقل آخر
 - [x] تنفيذ اختبار قبول أول بعد تفعيل حاجز Forward to Classifier وتوثيق fbtrace_id؛ لم يتحقق events_received بسبب CTWA clid مفقود
 - [ ] انتظار موافقة صريحة لتنفيذ اختبار CTWA ثانٍ بctwa_clid حقيقي؛ شرط نجاح الاختبار الأول لم يتحقق
+- [x] التحقق من ctwa_clid الحقيقي من تنفيذ 20538 وحالة تعطيل Forward to Classifier قبل الاختبار
+- [x] تنفيذ اختبار CTWA واحد بالقيمة الحقيقية فقط؛ لم تصل المحاولة إلى Meta CAPI لتسجيل error_subcode أو fbtrace_id
+- [x] تصنيف نتيجة CTWA: غير قابلة للحكم لأن Code: Build Messaging Event أخرج صفر عناصر قبل Meta
+- [ ] انتظار موافقة مستقلة لتشخيص/إصلاح سبب تنفيذ Forward to Classifier رغم disabled:true قبل أي اختبار CAPI جديد
