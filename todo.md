@@ -124,3 +124,5 @@
 - [x] تنفيذ اختبار CTWA واحد بالقيمة الحقيقية فقط؛ لم تصل المحاولة إلى Meta CAPI لتسجيل error_subcode أو fbtrace_id
 - [x] تصنيف نتيجة CTWA: غير قابلة للحكم لأن Code: Build Messaging Event أخرج صفر عناصر قبل Meta
 - [ ] انتظار موافقة مستقلة لتشخيص/إصلاح سبب تنفيذ Forward to Classifier رغم disabled:true قبل أي اختبار CAPI جديد
+- [x] التحقق من بنية Webhook الصحيحة وحالة Forward to Classifier قبل اختبار CTWA المعاد
+- [x] تنفيذ اختبار CTWA واحد بالهيكل الصحيح دون تعديل Workflow: execution 20556 حقق events_received:1 وfbtrace_id موثق
