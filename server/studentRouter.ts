@@ -41,6 +41,7 @@ import {
   recallDailyEntriesAsOf,
   saveDailyEntry,
   updateStudentProfile,
+  type StoredDailyEntry,
 } from "./studentsDb";
 import {
   evaluateStudentPeriod,
@@ -125,7 +126,7 @@ async function requireStudent(ctx: {
 async function loadEntries(
   studentId: number,
   input: z.infer<typeof rangeSchema>
-): Promise<DailyEntry[]> {
+): Promise<StoredDailyEntry[]> {
   if (input.asOf) {
     return recallDailyEntriesAsOf(
       studentId,

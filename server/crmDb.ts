@@ -2,6 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 
 import { crmInteractions, crmRecords, type CrmRecord } from "../drizzle/schema";
 import { buildCrmRow, crmRowKey } from "@shared/sheets/tabs";
+import { CRM_STAGE_LABELS_AR, CRM_STATUS_LABELS_AR } from "@shared/crm/labels";
 import { getDb } from "./db";
 import { enqueueSheetSyncQuietly } from "./sheetSync";
 
@@ -35,24 +36,7 @@ export const CRM_DIRECTIONS = ["in", "out", "internal"] as const;
 export type CrmStage = (typeof CRM_STAGES)[number];
 export type CrmStatus = (typeof CRM_STATUSES)[number];
 
-export const CRM_STAGE_LABELS_AR: Record<CrmStage, string> = {
-  new: "جديد",
-  contacted: "اتواصلنا",
-  qualified: "مؤهَّل",
-  enrolled: "اشترك",
-  onboarding: "تهيئة",
-  active: "نشط",
-  at_risk: "معرّض للفقد",
-  recovered: "اتسترد",
-  churned: "فُقد",
-};
-
-export const CRM_STATUS_LABELS_AR: Record<CrmStatus, string> = {
-  open: "مفتوح",
-  waiting: "منتظر رد",
-  closed_won: "مقفول ناجح",
-  closed_lost: "مقفول خاسر",
-};
+export { CRM_STAGE_LABELS_AR, CRM_STATUS_LABELS_AR };
 
 const toIso = (value: Date | string | null): string | null =>
   value === null ? null : value instanceof Date ? value.toISOString() : value;

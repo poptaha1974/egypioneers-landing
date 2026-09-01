@@ -8,6 +8,9 @@ import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import DraftAttributionTest from "./pages/DraftAttributionTest";
 import BreakEvenCalculator from "./pages/BreakEvenCalculator";
+import StudentDashboard from "./pages/StudentDashboard";
+import CrmBoard from "./pages/CrmBoard";
+import ErpReports from "./pages/ErpReports";
 
 function Router() {
   return (
@@ -15,6 +18,9 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/calculator"} component={BreakEvenCalculator} />
+      <Route path={"/dashboard"} component={StudentDashboard} />
+      <Route path={"/crm"} component={CrmBoard} />
+      <Route path={"/erp"} component={ErpReports} />
       <Route path={"/draft/attribution-test"} component={DraftAttributionTest} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
