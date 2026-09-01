@@ -23,6 +23,7 @@ import {
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { ENGAGEMENT_EVENT_NAMES } from "./engagementSummary";
+import { crmRouter, erpRouter, sheetsRouter, studentRouter } from "./studentRouter";
 
 // Admin-only procedure: only users with role=admin can access
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -52,6 +53,14 @@ export const appRouter = router({
       } as const;
     }),
   }),
+
+  // ======================================================
+  // منصة الطلاب: داشبورد الطالب + CRM + تقارير ERP + مزامنة الشيت
+  // ======================================================
+  student: studentRouter,
+  crm: crmRouter,
+  erp: erpRouter,
+  sheets: sheetsRouter,
 
   // ======================================================
   // Leads Router - نموذج تأهيل العملاء المحتملين

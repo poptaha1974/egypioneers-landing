@@ -161,3 +161,33 @@
 .animate-glow {
   animation: glow 3s ease-in-out infinite;
 }
+
+/* طباعة التقرير (زر PDF) — العناصر التفاعلية بتختفي والألوان بتبقى ورقية. */
+@media print {
+  :root {
+    --background: #ffffff;
+    --foreground: #101010;
+    --card: #ffffff;
+    --card-foreground: #101010;
+    --muted-foreground: #4a4a4a;
+    --border: #d4d4d4;
+  }
+
+  body {
+    background: #ffffff;
+    color: #101010;
+  }
+
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+}

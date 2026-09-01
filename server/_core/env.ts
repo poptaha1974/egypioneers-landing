@@ -7,4 +7,10 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+
+  // مزامنة الشيت المجمع للإدارة — القيم من متغيرات البيئة فقط،
+  // مفيش أي سر بيتخزن في المستودع (شرط Research Preview في THINC).
+  googleServiceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? "",
+  googleServiceAccountPrivateKey: (process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
+  studentMasterSheetId: process.env.STUDENT_MASTER_SHEET_ID ?? "",
 };
