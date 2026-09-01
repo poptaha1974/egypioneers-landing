@@ -7,12 +7,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import DraftAttributionTest from "./pages/DraftAttributionTest";
+import BreakEvenCalculator from "./pages/BreakEvenCalculator";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/calculator"} component={BreakEvenCalculator} />
       <Route path={"/draft/attribution-test"} component={DraftAttributionTest} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
